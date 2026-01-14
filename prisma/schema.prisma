@@ -1,0 +1,781 @@
+// Prisma Schema for Online MBA LMS
+// This replaces all your Google Sheets
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USERS & AUTHENTICATION
+// ============================================
+
+model Student {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  fullName      String
+  firstName     String?
+  lastName      String?
+  rollNumber    String?
+  phone         String?
+  avatar        String?
+  about         String?
+  location      String?
+  linkedinUrl   String?
+  githubUrl     String?
+  portfolioUrl  String?
+  isAdmin       Boolean  @default(false)
+
+  // Relations
+  batch         Batch    @relation(fields: [batchId], references: [id])
+  batchId       String
+
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastLoginAt   DateTime?
+
+  // Related data
+  sessionNotes      SessionNote[]
+  examAttempts      ExamAttempt[]
+  submissions       AssignmentSubmission[]
+  formResponses     FormResponse[]
+  jobApplications   JobApplication[]
+  communityPosts    CommunityPost[]
+  postComments      PostComment[]
+  postLikes         PostLike[]
+  acknowledgements  Acknowledgement[]
+  placementProfile  PlacementProfile?
+  peerRatingsGiven  PeerRating[]  @relation("RaterRelation")
+
+  @@index([batchId])
+  @@index([email])
+}
+
+model Batch {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  status    String   @default("active") // active, archived
+  createdAt DateTime @default(now())
+
+  // Relations
+  students      Student[]
+  terms         Term[]
+  announcements Announcement[]
+  resources     Resource[]
+  policies      Policy[]
+  liveSessions  LiveSession[]
+  exams         Exam[]
+  assignments   Assignment[]
+  forms         Form[]
+  jobPostings   JobPosting[]
+}
+
+// ============================================
+// COURSE STRUCTURE (Term → Domain → Subject)
+// ============================================
+
+model Term {
+  id        String   @id @default(cuid())
+  name      String   // "Term 1", "Term 2", etc.
+  order     Int      @default(0)
+
+  batch     Batch    @relation(fields: [batchId], references: [id])
+  batchId   String
+
+  domains   Domain[]
+
+  @@unique([batchId, name])
+  @@index([batchId])
+}
+
+model Domain {
+  id        String   @id @default(cuid())
+  name      String   // "Marketing and Branding", "Management & Strategy"
+
+  term      Term     @relation(fields: [termId], references: [id])
+  termId    String
+
+  subjects  Subject[]
+
+  @@unique([termId, name])
+  @@index([termId])
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String   // "Consumer Behaviour", "Business Strategy"
+
+  domain    Domain   @relation(fields: [domainId], references: [id])
+  domainId  String
+
+  // Related content
+  liveSessions  LiveSession[]
+  recordings    Recording[]
+  resources     Resource[]
+  exams         Exam[]
+  assignments   Assignment[]
+
+  @@unique([domainId, name])
+  @@index([domainId])
+}
+
+// ============================================
+// SESSIONS & RECORDINGS
+// ============================================
+
+model LiveSession {
+  id            String   @id @default(cuid())
+  meetingNumber String
+  password      String?
+  sessionName   String
+  description   String?
+
+  // Zoom/Meeting details
+  zoomLink      String?
+  startTime     DateTime
+  endTime       DateTime
+  duration      Int?     // minutes
+  status        String   @default("scheduled") // scheduled, live, ended, cancelled
+
+  // Relations
+  batch         Batch    @relation(fields: [batchId], references: [id])
+  batchId       String
+  subject       Subject  @relation(fields: [subjectId], references: [id])
+  subjectId     String
+
+  // After session ends, recording is created
+  recording     Recording?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([batchId])
+  @@index([subjectId])
+  @@index([startTime])
+  @@index([status])
+}
+
+model Recording {
+  id              String   @id @default(cuid())
+  sessionName     String
+  description     String?
+
+  // Video URLs (multiple views)
+  speakerViewUrl  String?
+  galleryViewUrl  String?
+  screenShareUrl  String?
+  activeSpeakerUrl String?
+
+  duration        Int?     // minutes
+  thumbnailUrl    String?
+  transcriptUrl   String?
+
+  // Relations
+  liveSession     LiveSession? @relation(fields: [liveSessionId], references: [id])
+  liveSessionId   String?      @unique
+  subject         Subject      @relation(fields: [subjectId], references: [id])
+  subjectId       String
+
+  // Student notes for this recording
+  notes           SessionNote[]
+
+  recordedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@index([subjectId])
+  @@index([recordedAt])
+}
+
+model SessionNote {
+  id            String   @id @default(cuid())
+  content       String   // HTML content
+  tags          String[] // Array of tags
+  isPinned      Boolean  @default(false)
+  videoTimestamp Int?    // seconds into video
+
+  // Relations
+  student       Student   @relation(fields: [studentId], references: [id])
+  studentId     String
+  recording     Recording @relation(fields: [recordingId], references: [id])
+  recordingId   String
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([studentId, recordingId]) // One note per student per recording
+  @@index([studentId])
+  @@index([recordingId])
+}
+
+// ============================================
+// ANNOUNCEMENTS & EVENTS
+// ============================================
+
+model Announcement {
+  id            String   @id @default(cuid())
+  title         String
+  subtitle      String?
+  description   String   // HTML content
+  type          String   // announcement, event
+  subType       String?  // specific category
+  priority      String   @default("medium") // low, medium, high, critical
+
+  // Event-specific fields
+  location      String?
+  registrationLink String?
+  maxAttendees  Int?
+  coverImageUrl String?
+
+  // Scheduling
+  startDate     DateTime
+  endDate       DateTime?
+  displayInCalendar Boolean @default(true)
+
+  // Settings
+  requiresAcknowledgement Boolean @default(false)
+  status        String   @default("published") // draft, published, archived
+
+  // Relations
+  batch         Batch    @relation(fields: [batchId], references: [id])
+  batchId       String
+
+  // File attachments stored as JSON
+  attachments   Json?    // [{name, url, type, size}]
+
+  // Who acknowledged
+  acknowledgements Acknowledgement[]
+
+  postedBy      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([batchId])
+  @@index([type])
+  @@index([startDate])
+  @@index([status])
+}
+
+model Acknowledgement {
+  id            String   @id @default(cuid())
+  contentType   String   // announcement, policy
+  contentId     String
+
+  student       Student  @relation(fields: [studentId], references: [id])
+  studentId     String
+
+  // Optional: link to specific announcement
+  announcement  Announcement? @relation(fields: [announcementId], references: [id])
+  announcementId String?
+
+  acknowledgedAt DateTime @default(now())
+
+  @@unique([studentId, contentType, contentId])
+  @@index([studentId])
+}
+
+// ============================================
+// RESOURCES
+// ============================================
+
+model Resource {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  resourceType  String   // document, video, link, folder
+  level         String   // term, domain, subject, session
+
+  // File/URL attachments as JSON
+  files         Json?    // [{name, url, type, size}]
+  urls          Json?    // [{name, url}]
+
+  // Relations (hierarchical)
+  batch         Batch    @relation(fields: [batchId], references: [id])
+  batchId       String
+  subject       Subject? @relation(fields: [subjectId], references: [id])
+  subjectId     String?
+
+  status        String   @default("published")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([batchId])
+  @@index([subjectId])
+  @@index([resourceType])
+}
+
+// ============================================
+// POLICIES
+// ============================================
+
+model Policy {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  fullContent   String   // HTML content
+  category      String?
+  version       String?
+
+  requiresAcknowledgement Boolean @default(false)
+  status        String   @default("published")
+
+  batch         Batch    @relation(fields: [batchId], references: [id])
+  batchId       String
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([batchId])
+}
+
+// ============================================
+// EXAMS
+// ============================================
+
+model Exam {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  instructions  String?
+  type          String   // quiz, midterm, final, practice
+
+  // Timing
+  duration      Int      // minutes
+  startTime     DateTime?
+  endTime       DateTime?
+
+  // Scoring
+  totalMarks    Int
+  passingMarks  Int?
+
+  // Settings stored as JSON
+  proctoringSettings Json? // {webcam, screenShare, tabSwitch, etc.}
+  passwordConfig     Json? // {type, passwords: [{email, password}]}
+
+  status        String   @default("draft") // draft, published, active, completed, archived
+
+  // Relations
+  batch         Batch    @relation(fields: [batchId], references: [id])
+  batchId       String
+  subject       Subject  @relation(fields: [subjectId], references: [id])
+  subjectId     String
+
+  questions     Question[]
+  attempts      ExamAttempt[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([batchId])
+  @@index([subjectId])
+  @@index([status])
+}
+
+model Question {
+  id            String   @id @default(cuid())
+  type          String   // mcq, mcq_multiple, short_answer, long_answer
+  questionText  String
+
+  // Options as JSON for MCQ: [{id, text, isCorrect}]
+  options       Json?
+  correctAnswer String?  // For non-MCQ
+
+  marks         Int
+  negativeMarks Float    @default(0)
+  explanation   String?
+  orderIndex    Int      @default(0)
+
+  exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  examId        String
+
+  @@index([examId])
+}
+
+model ExamAttempt {
+  id            String   @id @default(cuid())
+
+  // Status tracking
+  status        String   @default("in_progress") // in_progress, submitted, graded, expired
+  startedAt     DateTime @default(now())
+  submittedAt   DateTime?
+
+  // Scoring
+  score         Float?
+  percentage    Float?
+
+  // Answers stored as JSON: [{questionId, answer, isCorrect, marksObtained}]
+  answers       Json?
+
+  // Proctoring violations: [{type, timestamp, details, screenshotUrl}]
+  violations    Json?
+
+  // Device info for session validation
+  deviceInfo    Json?
+  ipAddress     String?
+
+  // Relations
+  student       Student  @relation(fields: [studentId], references: [id])
+  studentId     String
+  exam          Exam     @relation(fields: [examId], references: [id])
+  examId        String
+
+  // Session management
+  session       ExamSession?
+
+  @@unique([studentId, examId]) // One attempt per student per exam
+  @@index([examId])
+  @@index([studentId])
+}
+
+model ExamSession {
+  id            String   @id @default(cuid())
+  sessionToken  String   @unique
+  deviceHash    String?
+  ipAddress     String?
+  isActive      Boolean  @default(true)
+
+  attempt       ExamAttempt @relation(fields: [attemptId], references: [id])
+  attemptId     String      @unique
+
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
+  lastActivityAt DateTime @default(now())
+
+  @@index([sessionToken])
+}
+
+// ============================================
+// ASSIGNMENTS
+// ============================================
+
+model Assignment {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  instructions  String?
+
+  // Timing
+  startDate     DateTime
+  endDate       DateTime
+
+  // File constraints
+  maxFileSize   Int?     // bytes
+  allowedFileTypes String[] // [".pdf", ".docx", ".zip"]
+
+  // Group settings
+  isGroupAssignment Boolean @default(false)
+  groupSize     Int?
+
+  // Peer rating
+  hasPeerRating Boolean @default(false)
+
+  status        String   @default("draft") // draft, published, active, closed, graded
+
+  // Relations
+  batch         Batch    @relation(fields: [batchId], references: [id])
+  batchId       String
+  subject       Subject  @relation(fields: [subjectId], references: [id])
+  subjectId     String
+
+  submissions   AssignmentSubmission[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([batchId])
+  @@index([subjectId])
+  @@index([endDate])
+}
+
+model AssignmentSubmission {
+  id            String   @id @default(cuid())
+
+  // Files as JSON: [{name, url, size, type}]
+  files         Json?
+  content       String?  // For text submissions
+
+  // Group info
+  groupId       String?
+  groupMembers  Json?    // [{email, name}]
+
+  status        String   @default("submitted") // submitted, late, graded
+
+  // Grading
+  grade         Float?
+  feedback      String?
+
+  // Relations
+  student       Student    @relation(fields: [studentId], references: [id])
+  studentId     String
+  assignment    Assignment @relation(fields: [assignmentId], references: [id])
+  assignmentId  String
+
+  // Peer ratings received
+  peerRatings   PeerRating[]
+
+  submittedAt   DateTime @default(now())
+  gradedAt      DateTime?
+
+  @@unique([studentId, assignmentId])
+  @@index([assignmentId])
+  @@index([studentId])
+}
+
+model PeerRating {
+  id            String   @id @default(cuid())
+  rating        Int      // 1-5
+  remarks       String?
+
+  submission    AssignmentSubmission @relation(fields: [submissionId], references: [id])
+  submissionId  String
+
+  rater         Student  @relation("RaterRelation", fields: [raterId], references: [id])
+  raterId       String
+
+  createdAt     DateTime @default(now())
+
+  @@unique([submissionId, raterId])
+  @@index([submissionId])
+}
+
+// ============================================
+// FORMS & SURVEYS
+// ============================================
+
+model Form {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  type          String   // survey, feedback, registration, consent
+
+  // Questions stored as JSON (form builder config)
+  questions     Json     // [{id, type, label, options, required, validation}]
+
+  isRequired    Boolean  @default(false)
+  deadline      DateTime?
+  status        String   @default("active") // draft, active, closed, archived
+
+  batch         Batch    @relation(fields: [batchId], references: [id])
+  batchId       String
+
+  responses     FormResponse[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([batchId])
+  @@index([status])
+}
+
+model FormResponse {
+  id            String   @id @default(cuid())
+
+  // Responses as JSON: {questionId: answer}
+  responses     Json
+
+  student       Student  @relation(fields: [studentId], references: [id])
+  studentId     String
+  form          Form     @relation(fields: [formId], references: [id])
+  formId        String
+
+  submittedAt   DateTime @default(now())
+
+  @@unique([studentId, formId])
+  @@index([formId])
+}
+
+// ============================================
+// PLACEMENT & JOBS
+// ============================================
+
+model JobPosting {
+  id            String   @id @default(cuid())
+  title         String
+  company       String
+  companyLogo   String?
+  description   String?
+  requirements  String[] // Array of requirements
+  responsibilities String[]
+
+  location      String?
+  jobType       String   // full_time, part_time, internship, contract
+
+  // Salary as JSON: {min, max, currency, period}
+  salaryRange   Json?
+
+  deadline      DateTime
+  status        String   @default("active") // active, closed, filled
+
+  batch         Batch    @relation(fields: [batchId], references: [id])
+  batchId       String
+
+  applications  JobApplication[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([batchId])
+  @@index([status])
+  @@index([deadline])
+}
+
+model JobApplication {
+  id            String   @id @default(cuid())
+
+  resumeUrl     String?
+  coverLetter   String?
+
+  // Additional responses as JSON
+  responses     Json?
+
+  status        String   @default("pending") // pending, reviewing, shortlisted, interviewed, offered, rejected
+
+  student       Student    @relation(fields: [studentId], references: [id])
+  studentId     String
+  job           JobPosting @relation(fields: [jobId], references: [id])
+  jobId         String
+
+  appliedAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([studentId, jobId])
+  @@index([jobId])
+  @@index([status])
+}
+
+model PlacementProfile {
+  id            String   @id @default(cuid())
+
+  // Experience as JSON: [{company, role, duration, ctc, description}]
+  experience    Json?
+
+  // Internships as JSON
+  internships   Json?
+
+  // Projects as JSON: [{title, description, link}]
+  projects      Json?
+
+  // Domain preferences with resumes: [{domain, resumeUrl}]
+  domains       Json?
+
+  preferredLocations String[]
+
+  student       Student  @relation(fields: [studentId], references: [id])
+  studentId     String   @unique
+
+  updatedAt     DateTime @updatedAt
+
+  @@index([studentId])
+}
+
+// ============================================
+// COMMUNITY (Students Corner)
+// ============================================
+
+model CommunityPost {
+  id            String   @id @default(cuid())
+  type          String   // discussion, resource, question, announcement
+  title         String
+  content       String   // HTML content
+
+  // Attachments as JSON
+  attachments   Json?
+
+  isPinned      Boolean  @default(false)
+  likesCount    Int      @default(0)
+  commentsCount Int      @default(0)
+
+  author        Student  @relation(fields: [authorId], references: [id])
+  authorId      String
+
+  comments      PostComment[]
+  likes         PostLike[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model PostComment {
+  id            String   @id @default(cuid())
+  content       String
+
+  post          CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId        String
+
+  author        Student  @relation(fields: [authorId], references: [id])
+  authorId      String
+
+  createdAt     DateTime @default(now())
+
+  @@index([postId])
+}
+
+model PostLike {
+  post          CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId        String
+
+  student       Student  @relation(fields: [studentId], references: [id])
+  studentId     String
+
+  createdAt     DateTime @default(now())
+
+  @@id([postId, studentId])
+}
+
+// ============================================
+// AUTOMATION & SCHEDULED TASKS
+// ============================================
+
+model ScheduledTask {
+  id            String   @id @default(cuid())
+  type          String   // send_reminder, close_assignment, publish_result
+
+  // Task configuration as JSON
+  config        Json
+
+  scheduledFor  DateTime
+  status        String   @default("pending") // pending, running, completed, failed
+
+  // Execution info
+  executedAt    DateTime?
+  result        Json?
+  error         String?
+
+  createdAt     DateTime @default(now())
+
+  @@index([scheduledFor])
+  @@index([status])
+}
+
+// ============================================
+// AUDIT LOG (for tracking changes)
+// ============================================
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  action        String   // create, update, delete
+  tableName     String
+  recordId      String
+
+  // Who made the change
+  userId        String?
+  userEmail     String?
+
+  // What changed
+  oldData       Json?
+  newData       Json?
+
+  createdAt     DateTime @default(now())
+
+  @@index([tableName])
+  @@index([userId])
+  @@index([createdAt])
+}

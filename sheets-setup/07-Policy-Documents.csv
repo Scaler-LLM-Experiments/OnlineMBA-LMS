@@ -1,0 +1,5 @@
+ID,Policy Name,Description,Category,Batch,Status,Requires Acknowledgement,Start DateTime,End DateTime
+POL001,Academic Integrity Policy,Guidelines for maintaining academic honesty and integrity in all coursework,Academic,MBA-2024,Published,Yes,2025-01-01,2025-12-31
+POL002,Attendance Policy,Minimum attendance requirements and leave procedures,Academic,MBA-2024,Published,Yes,2025-01-01,2025-12-31
+POL003,Code of Conduct,Expected behavior and professional conduct guidelines,General,MBA-2024,Published,Yes,2025-01-01,2025-12-31
+POL004,Examination Guidelines,Rules and procedures for examinations,Academic,MBA-2024,Published,Yes,2025-01-01,2025-12-31

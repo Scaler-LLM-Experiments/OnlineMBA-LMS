@@ -1,0 +1,5 @@
+ID,Category Type,Event Type,Title,Description,Batch,Start DateTime,End DateTime,Status,Publish
+EVT001,EVENTS,Workshop,Career Development Workshop,Learn resume building and interview skills from industry experts,MBA-2024,2025-01-25 10:00,2025-01-25 16:00,Published,Yes
+EVT002,EVENTS,Webinar,Industry Expert Talk,Guest lecture by Fortune 500 CEO on leadership,MBA-2024,2025-01-28 14:00,2025-01-28 15:30,Published,Yes
+EVT003,ANNOUNCEMENTS,Important,Mid-Term Exam Schedule Released,Check your exam dates and prepare accordingly,MBA-2024,2025-01-20 09:00,2025-02-15 23:59,Published,Yes
+EVT004,ANNOUNCEMENTS,General,Library Hours Extended,Library will remain open till 10 PM during exam period,MBA-2024,2025-01-22 00:00,2025-02-20 23:59,Published,Yes

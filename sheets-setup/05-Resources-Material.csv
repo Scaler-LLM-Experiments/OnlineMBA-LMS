@@ -1,0 +1,4 @@
+ID_RES,Publish_RES,Posted By_RES,Created at_RES,Title_RES,Description_RES,Term_RES,Domain_RES,Subject_RES,Level_RES,Resource Type_RES,File 1 Name_RES,File 1 URL_RES,Status_RES
+RES001,Yes,mohit000pareek@gmail.com,2025-01-15 10:00:00,Accounting Fundamentals,Introduction to basic accounting principles and concepts,Term-1,Finance,Financial Accounting,Subject,Lecture Slides,Accounting-Intro.pdf,https://drive.google.com/file/d/sample,Published
+RES002,Yes,mohit000pareek@gmail.com,2025-01-15 10:30:00,Marketing Case Studies,Collection of real-world marketing case studies,Term-1,Marketing,Marketing Management,Subject,Case Study,Marketing-Cases.pdf,https://drive.google.com/file/d/sample2,Published
+RES003,Yes,mohit000pareek@gmail.com,2025-01-16 09:00:00,Excel for Finance,Learn Excel formulas for financial analysis,Term-1,Finance,Financial Accounting,Subject,Video Tutorial,Excel-Tutorial.mp4,https://drive.google.com/file/d/sample3,Published

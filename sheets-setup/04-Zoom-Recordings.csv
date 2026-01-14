@@ -1,0 +1,4 @@
+Session ID,Batch,Term,Domain,Subject,Session Name,Topic,Date,Start Time,Duration,Speaker View URL,Gallery View URL,Thumbnail
+REC001,MBA-2024,Term-1,Finance,Financial Accounting,Session 1,Introduction to Financial Accounting,15-Jan-2025,10:00 AM,60,https://drive.google.com/file/d/sample1,https://drive.google.com/file/d/sample1g,https://i.ytimg.com/vi/sample/hqdefault.jpg
+REC002,MBA-2024,Term-1,Finance,Financial Accounting,Session 2,Balance Sheet Basics,17-Jan-2025,10:00 AM,60,https://drive.google.com/file/d/sample2,https://drive.google.com/file/d/sample2g,https://i.ytimg.com/vi/sample/hqdefault.jpg
+REC003,MBA-2024,Term-1,Marketing,Marketing Management,Session 1,Marketing Fundamentals,16-Jan-2025,02:00 PM,90,https://drive.google.com/file/d/sample3,https://drive.google.com/file/d/sample3g,https://i.ytimg.com/vi/sample/hqdefault.jpg

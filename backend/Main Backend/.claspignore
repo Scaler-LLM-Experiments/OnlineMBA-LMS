@@ -1,0 +1,6 @@
+Config.js
+*.md
+*.bak
+*.bak2
+*.bak3
+../**

@@ -1,0 +1,425 @@
+import React, { useState, useMemo, useCallback } from 'react';
+import { useNotes } from '../hooks/useNotes';
+import { RefreshCw, FileText, Pin, Tag, CheckSquare, ChevronRight, FolderOpen, BookOpen, FileType } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+// Skeleton Loader Component
+function NoteSkeleton() {
+  return (
+    <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-white/70 to-white/40 dark:from-gray-900/70 dark:to-gray-800/40 backdrop-blur-2xl border border-white/20 dark:border-gray-700/30">
+      <div className="animate-pulse space-y-4">
+        <div className="flex items-start justify-between">
+          <div className="space-y-2 flex-1">
+            <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-32"></div>
+            <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4"></div>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
+          <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-5/6"></div>
+          <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-4/6"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type NavigationLevel = 'term' | 'domain' | 'subject' | 'notes';
+
+interface NavigationState {
+  level: NavigationLevel;
+  selectedTerm: string | null;
+  selectedDomain: string | null;
+  selectedSubject: string | null;
+}
+
+export function NotesPage() {
+  const { notes, loading, refetch } = useNotes();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Navigation state
+  const [navigation, setNavigation] = useState<NavigationState>({
+    level: 'term',
+    selectedTerm: null,
+    selectedDomain: null,
+    selectedSubject: null
+  });
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+    toast.success('Notes refreshed');
+  }, [refetch]);
+
+  // Extract hierarchical data
+  const hierarchy = useMemo(() => {
+    const terms = new Set<string>();
+    const domainsByTerm = new Map<string, Set<string>>();
+    const subjectsByTermAndDomain = new Map<string, Set<string>>();
+
+    notes.forEach(note => {
+      if (note.term) {
+        terms.add(note.term);
+
+        if (note.domain) {
+          if (!domainsByTerm.has(note.term)) {
+            domainsByTerm.set(note.term, new Set());
+          }
+          domainsByTerm.get(note.term)!.add(note.domain);
+
+          if (note.subject) {
+            const key = `${note.term}::${note.domain}`;
+            if (!subjectsByTermAndDomain.has(key)) {
+              subjectsByTermAndDomain.set(key, new Set());
+            }
+            subjectsByTermAndDomain.get(key)!.add(note.subject);
+          }
+        }
+      }
+    });
+
+    return {
+      terms: Array.from(terms).sort(),
+      getDomains: (term: string) => Array.from(domainsByTerm.get(term) || []).sort(),
+      getSubjects: (term: string, domain: string) =>
+        Array.from(subjectsByTermAndDomain.get(`${term}::${domain}`) || []).sort()
+    };
+  }, [notes]);
+
+  // Get filtered notes for the current selection
+  const filteredNotes = useMemo(() => {
+    if (navigation.level !== 'notes') return [];
+
+    let filtered = notes.filter(note =>
+      note.term === navigation.selectedTerm &&
+      note.domain === navigation.selectedDomain &&
+      note.subject === navigation.selectedSubject
+    );
+
+    // Sort by timestamp (most recent first)
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.timestamp || a.lastModified);
+      const dateB = new Date(b.timestamp || b.lastModified);
+      return dateB.getTime() - dateA.getTime();
+    });
+  }, [notes, navigation]);
+
+  // Navigation handlers
+  const selectTerm = (term: string) => {
+    setNavigation({
+      level: 'domain',
+      selectedTerm: term,
+      selectedDomain: null,
+      selectedSubject: null
+    });
+  };
+
+  const selectDomain = (domain: string) => {
+    setNavigation(prev => ({
+      ...prev,
+      level: 'subject',
+      selectedDomain: domain,
+      selectedSubject: null
+    }));
+  };
+
+  const selectSubject = (subject: string) => {
+    setNavigation(prev => ({
+      ...prev,
+      level: 'notes',
+      selectedSubject: subject
+    }));
+  };
+
+  // Extract todos from note content
+  const extractTodos = (noteContent: string): { total: number; completed: number } => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(noteContent, 'text/html');
+    const checkboxes = doc.querySelectorAll('input[type="checkbox"]');
+
+    let total = 0;
+    let completed = 0;
+
+    checkboxes.forEach((checkbox) => {
+      total++;
+      if (checkbox.hasAttribute('checked')) {
+        completed++;
+      }
+    });
+
+    return { total, completed };
+  };
+
+  // Extract tags from note content
+  const extractTags = (noteContent: string): string[] => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(noteContent, 'text/html');
+    const tagElements = doc.querySelectorAll('[data-tag]');
+    return Array.from(tagElements).map(el => el.getAttribute('data-tag')).filter(Boolean) as string[];
+  };
+
+  const hasAnyNotes = notes.length > 0;
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Header with Breadcrumb */}
+      <div className="flex items-center justify-between">
+        <div>
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              onClick={() => setNavigation({ level: 'term', selectedTerm: null, selectedDomain: null, selectedSubject: null })}
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-colors ${
+                navigation.level === 'term'
+                  ? 'text-primary font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              My Notes
+            </button>
+
+            {navigation.selectedTerm && (
+              <>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                <button
+                  onClick={() => setNavigation({ level: 'domain', selectedTerm: navigation.selectedTerm, selectedDomain: null, selectedSubject: null })}
+                  className={`px-2 py-1 rounded-lg transition-colors ${
+                    navigation.level === 'domain'
+                      ? 'text-primary font-semibold'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                  }`}
+                >
+                  {navigation.selectedTerm}
+                </button>
+              </>
+            )}
+
+            {navigation.selectedDomain && (
+              <>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                <button
+                  onClick={() => setNavigation(prev => ({ ...prev, level: 'subject', selectedSubject: null }))}
+                  className={`px-2 py-1 rounded-lg transition-colors ${
+                    navigation.level === 'subject'
+                      ? 'text-primary font-semibold'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                  }`}
+                >
+                  {navigation.selectedDomain}
+                </button>
+              </>
+            )}
+
+            {navigation.selectedSubject && (
+              <>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                <span className="text-primary font-semibold px-2 py-1">
+                  {navigation.selectedSubject}
+                </span>
+              </>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            {navigation.level === 'term' && 'Select a term to view notes'}
+            {navigation.level === 'domain' && 'Select a domain to view notes'}
+            {navigation.level === 'subject' && 'Select a subject to view notes'}
+            {navigation.level === 'notes' && 'All notes in chronological order'}
+          </p>
+        </div>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-xl text-primary transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
+        >
+          <RefreshCw className={`w-4 h-4 transition-transform ${isRefreshing ? 'animate-spin' : ''}`} />
+          <span className="text-sm font-medium">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+        </button>
+      </div>
+
+      {/* Content Based on Navigation Level */}
+      {loading || isRefreshing ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <NoteSkeleton />
+          <NoteSkeleton />
+          <NoteSkeleton />
+          <NoteSkeleton />
+        </div>
+      ) : !hasAnyNotes ? (
+        <div className="relative overflow-hidden rounded-2xl p-12">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-white/30 dark:from-gray-900/60 dark:to-gray-800/30 backdrop-blur-xl border border-white/20 dark:border-gray-700/30"></div>
+          <div className="relative text-center">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
+              <FileText className="w-10 h-10 text-gray-400 dark:text-gray-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">No notes available</h3>
+            <p className="text-sm text-muted-foreground">Start taking notes in your sessions!</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Term Selection View */}
+          {navigation.level === 'term' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {hierarchy.terms.map(term => (
+                <button
+                  key={term}
+                  onClick={() => selectTerm(term)}
+                  className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-white/70 to-white/40 dark:from-gray-900/70 dark:to-gray-800/40 backdrop-blur-2xl border border-white/20 dark:border-gray-700/30 hover:shadow-xl transition-all duration-300 group text-left"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <FolderOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {term}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {hierarchy.getDomains(term).length} domains
+                      </p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Domain Selection View */}
+          {navigation.level === 'domain' && navigation.selectedTerm && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {hierarchy.getDomains(navigation.selectedTerm).map(domain => {
+                const selectedTerm = navigation.selectedTerm!; // Already checked above
+                return (
+                  <button
+                    key={domain}
+                    onClick={() => selectDomain(domain)}
+                    className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-white/70 to-white/40 dark:from-gray-900/70 dark:to-gray-800/40 backdrop-blur-2xl border border-white/20 dark:border-gray-700/30 hover:shadow-xl transition-all duration-300 group text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <FileType className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                          {domain}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {hierarchy.getSubjects(selectedTerm, domain).length} subjects
+                        </p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Subject Selection View */}
+          {navigation.level === 'subject' && navigation.selectedTerm && navigation.selectedDomain && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {hierarchy.getSubjects(navigation.selectedTerm, navigation.selectedDomain).map(subject => {
+                const noteCount = notes.filter(note =>
+                  note.term === navigation.selectedTerm &&
+                  note.domain === navigation.selectedDomain &&
+                  note.subject === subject
+                ).length;
+
+                return (
+                  <button
+                    key={subject}
+                    onClick={() => selectSubject(subject)}
+                    className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-white/70 to-white/40 dark:from-gray-900/70 dark:to-gray-800/40 backdrop-blur-2xl border border-white/20 dark:border-gray-700/30 hover:shadow-xl transition-all duration-300 group text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <FileText className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                          {subject}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {noteCount} {noteCount === 1 ? 'note' : 'notes'}
+                        </p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Notes View - Chronological Scrollable Flow */}
+          {navigation.level === 'notes' && filteredNotes.length > 0 && (
+            <div className="space-y-4">
+              {filteredNotes.map((note) => {
+                const todos = extractTodos(note.noteContent);
+                const tags = extractTags(note.noteContent);
+
+                return (
+                  <div
+                    key={note.noteId}
+                    className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-white/70 to-white/40 dark:from-gray-900/70 dark:to-gray-800/40 backdrop-blur-2xl border border-white/20 dark:border-gray-700/30 hover:shadow-xl transition-all duration-300"
+                  >
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          {(note.isPinned === 'Yes' || note.isPinned === true) && (
+                            <Pin className="w-4 h-4 text-yellow-500" />
+                          )}
+                          {note.date && (
+                            <span className="text-xs text-muted-foreground">
+                              {note.date} • {note.startTime}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-lg font-semibold text-foreground mb-1">
+                          {note.sessionName || 'Untitled Note'}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Note Content */}
+                    <div
+                      className="prose prose-sm dark:prose-invert max-w-none mb-4"
+                      dangerouslySetInnerHTML={{ __html: note.noteContent }}
+                    />
+
+                    {/* Tags */}
+                    {tags.length > 0 && (
+                      <div className="flex items-center gap-2 flex-wrap mb-4">
+                        {tags.map(tag => (
+                          <span
+                            key={tag}
+                            className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs flex items-center gap-1"
+                          >
+                            <Tag className="w-3 h-3" />
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Footer */}
+                    {todos.total > 0 && (
+                      <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+                        <CheckSquare className="w-3 h-3" />
+                        <span>Tasks: {todos.completed}/{todos.total} completed</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}

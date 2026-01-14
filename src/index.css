@@ -1,0 +1,1168 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Custom animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 142 76% 36%;  /* SSB Green */
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 142 76% 36%; /* SSB Green */
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 142 76% 36%; /* SSB Green */
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 142 76% 36%; /* SSB Green */
+  }
+
+  body { 
+    font-family: 'Inter', sans-serif; 
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  /* Epic 3D Background - Green Gold Sequence */
+  .cosmic-bg {
+    background: 
+      radial-gradient(circle at 15% 25%, rgba(29, 143, 91, 0.7) 0%, transparent 45%),
+      radial-gradient(circle at 75% 20%, rgba(255, 195, 0, 0.6) 0%, transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.9) 0%, transparent 60%),
+      radial-gradient(circle at 25% 75%, rgba(29, 143, 91, 0.5) 0%, transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(255, 195, 0, 0.4) 0%, transparent 45%),
+      linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 25%, #16213e 50%, #0f172a 75%, #000000 100%);
+    background-size: 200% 200%;
+    animation: cosmicFlow 20s ease infinite;
+    position: relative;
+    opacity: 0;
+    animation: cosmicFadeIn 2s ease-out forwards, cosmicFlow 20s ease infinite 2s;
+  }
+  
+  /* EPIC SOLAR SYSTEM */
+  .solar-system {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    opacity: 0;
+    animation: fadeInStars 2s ease-out 0.5s forwards;
+  }
+  
+  /* Hide solar system on mobile to improve performance */
+  @media (max-width: 768px) {
+    .solar-system {
+      display: none;
+    }
+  }
+  
+  /* Central Sun */
+  .sun {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle at 30% 30%, #ffc300, #ff9500, #ff6b00);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 
+      0 0 30px #ffc300,
+      0 0 60px #ffc300,
+      0 0 90px #ff9500;
+    animation: sunPulse 4s ease-in-out infinite;
+    z-index: 10;
+  }
+  
+  /* Orbital Paths */
+  .orbit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border: 1px solid rgba(29, 143, 91, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .orbit-1 { width: 120px; height: 120px; }
+  .orbit-2 { width: 180px; height: 180px; }
+  .orbit-3 { width: 240px; height: 240px; }
+  .orbit-4 { width: 320px; height: 320px; }
+  .orbit-5 { width: 420px; height: 420px; }
+  .orbit-6 { width: 540px; height: 540px; }
+  .orbit-7 { width: 680px; height: 680px; }
+  .orbit-8 { width: 840px; height: 840px; }
+  .orbit-9 { width: 1020px; height: 1020px; }
+  
+  /* Planets */
+  .planet {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    transform-origin: 0 0;
+  }
+  
+  /* Planet 1 - Mercury (Gray/Brown - Rocky surface) */
+  .planet-1 {
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle at 30% 30%, #8C7853, #5D4E37, #4A3C2A);
+    animation: orbit1 6s linear infinite;
+    transform: translate(-50%, -50%);
+    transform-origin: 0 0;
+    box-shadow: 0 0 8px rgba(140, 120, 83, 0.6);
+  }
+  
+  /* Planet 2 - Venus (Bright Yellow/White - Thick atmosphere) */
+  .planet-2 {
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle at 30% 30%, #FFC649, #FFE135, #FFC107);
+    animation: orbit2 10s linear infinite;
+    transform: translate(-50%, -50%);
+    transform-origin: 0 0;
+    box-shadow: 0 0 15px rgba(255, 198, 73, 0.9);
+  }
+  
+  /* Planet 3 - Earth (Blue/Green - Oceans and continents) */
+  .planet-3 {
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle at 30% 30%, #6CB4EE, #4682B4, #228B22, #006400);
+    animation: orbit3 15s linear infinite;
+    transform: translate(-50%, -50%);
+    transform-origin: 0 0;
+    box-shadow: 0 0 20px rgba(100, 149, 237, 0.8);
+    position: relative;
+  }
+  
+  /* Earth's Moon */
+  .planet-3::after {
+    content: '';
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: radial-gradient(circle, #C0C0C0, #808080);
+    border-radius: 50%;
+    top: -8px;
+    right: -8px;
+    animation: moonOrbit 2s linear infinite;
+    box-shadow: 0 0 4px rgba(192, 192, 192, 0.6);
+  }
+  
+  /* Planet 4 - Mars (Red/Rusty - Iron oxide surface) */
+  .planet-4 {
+    width: 10px;
+    height: 10px;
+    background: radial-gradient(circle at 30% 30%, #CD5C5C, #A0522D, #8B4513);
+    animation: orbit4 22s linear infinite;
+    transform: translate(-50%, -50%);
+    transform-origin: 0 0;
+    box-shadow: 0 0 15px rgba(205, 92, 92, 0.7);
+  }
+  
+  /* Planet 5 - Jupiter (Orange/Brown bands - Gas giant) */
+  .planet-5 {
+    width: 28px;
+    height: 28px;
+    background: 
+      radial-gradient(ellipse at 30% 30%, #D2691E, #FF7F50, #CD853F, #A0522D),
+      linear-gradient(0deg, #8B4513 0%, #D2691E 25%, #FF7F50 50%, #D2691E 75%, #8B4513 100%);
+    background-blend-mode: multiply;
+    animation: orbit5 35s linear infinite;
+    transform: translate(-50%, -50%);
+    transform-origin: 0 0;
+    box-shadow: 0 0 35px rgba(210, 105, 30, 0.8);
+    position: relative;
+  }
+  
+  /* Jupiter's Great Red Spot */
+  .planet-5::before {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 6px;
+    background: radial-gradient(ellipse, #DC143C, #8B0000);
+    border-radius: 50%;
+    top: 45%;
+    left: 60%;
+    transform: translate(-50%, -50%);
+    opacity: 0.8;
+  }
+  
+  /* Jupiter's Moons (Io, Europa, Ganymede, Callisto) */
+  .jupiter-moon-1 {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: radial-gradient(circle, #FFFF99, #FFD700);
+    border-radius: 50%;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: jupiterMoon1 3s linear infinite;
+    box-shadow: 0 0 3px rgba(255, 215, 0, 0.6);
+  }
+  
+  .jupiter-moon-2 {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: radial-gradient(circle, #E6E6FA, #C0C0C0);
+    border-radius: 50%;
+    top: 50%;
+    right: -18px;
+    transform: translateY(-50%);
+    animation: jupiterMoon2 4s linear infinite;
+    box-shadow: 0 0 3px rgba(192, 192, 192, 0.6);
+  }
+  
+  .jupiter-moon-3 {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: radial-gradient(circle, #708090, #2F4F4F);
+    border-radius: 50%;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: jupiterMoon3 5s linear infinite;
+    box-shadow: 0 0 3px rgba(112, 128, 144, 0.6);
+  }
+  
+  .jupiter-moon-4 {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: radial-gradient(circle, #696969, #2F2F2F);
+    border-radius: 50%;
+    top: 50%;
+    left: -18px;
+    transform: translateY(-50%);
+    animation: jupiterMoon4 6s linear infinite;
+    box-shadow: 0 0 3px rgba(105, 105, 105, 0.6);
+  }
+  
+  /* Planet 6 - Saturn (Pale Gold - Gas giant with rings) */
+  .planet-6 {
+    width: 24px;
+    height: 24px;
+    background: radial-gradient(circle at 30% 30%, #FAD5A5, #DEB887, #D2B48C);
+    animation: orbit6 50s linear infinite;
+    transform: translate(-50%, -50%);
+    transform-origin: 0 0;
+    box-shadow: 0 0 30px rgba(250, 213, 165, 0.7);
+    position: relative;
+  }
+  
+  /* Saturn's Rings - Multiple layers for realism */
+  .planet-6::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 45px;
+    height: 45px;
+    border: 2px solid rgba(210, 180, 140, 0.6);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+  }
+  
+  .planet-6::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 38px;
+    height: 38px;
+    border: 1.5px solid rgba(250, 213, 165, 0.4);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+  }
+  
+  /* Additional ring using box-shadow */
+  .saturn-outer-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 52px;
+    height: 52px;
+    border: 1px solid rgba(192, 192, 192, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+  }
+  
+  /* Planet 7 - Uranus (Ice Blue/Cyan - Methane atmosphere) */
+  .planet-7 {
+    width: 18px;
+    height: 18px;
+    background: radial-gradient(circle at 30% 30%, #4FD0E7, #48CAE4, #0096C7, #023E8A);
+    animation: orbit7 70s linear infinite;
+    transform: translate(-50%, -50%);
+    transform-origin: 0 0;
+    box-shadow: 0 0 25px rgba(79, 208, 231, 0.8);
+  }
+  
+  /* Planet 8 - Neptune (Deep Blue - Windy atmosphere) */
+  .planet-8 {
+    width: 16px;
+    height: 16px;
+    background: radial-gradient(circle at 30% 30%, #1E3A8A, #1E40AF, #1E3A8A, #0F172A);
+    animation: orbit8 90s linear infinite;
+    transform: translate(-50%, -50%);
+    transform-origin: 0 0;
+    box-shadow: 0 0 25px rgba(30, 58, 138, 0.9);
+  }
+  
+  /* Planet 9 - Pluto (Brown/Gray - Dwarf planet) */
+  .planet-9 {
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle at 30% 30%, #8B4513, #A0522D, #654321);
+    animation: orbit9 120s linear infinite;
+    transform: translate(-50%, -50%);
+    transform-origin: 0 0;
+    box-shadow: 0 0 12px rgba(139, 69, 19, 0.6);
+  }
+  
+  /* Static Glass Card - Clean */
+  .ultimate-glass {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow:
+      0 30px 60px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 0 50px rgba(29, 143, 91, 0.1);
+    position: relative;
+    overflow: visible;
+  }
+
+  /* Dark mode - fully transparent glass effect */
+  .dark .ultimate-glass {
+    background: transparent;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Only apply shadow to non-live cards in dark mode */
+  .dark .ultimate-glass:not(.live-glow) {
+    box-shadow:
+      0 10px 30px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .ultimate-glass::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 50%,
+      rgba(29, 143, 91, 0.05) 100%);
+    pointer-events: none;
+  }
+
+  .dark .ultimate-glass::before {
+    background: transparent;
+  }
+  
+  /* Floating Particles inside Glass */
+  .glass-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(29, 143, 91, 0.6);
+    border-radius: 50%;
+    animation: floatInGlass 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  
+  .glass-particle:nth-child(even) {
+    background: rgba(255, 195, 0, 0.6);
+    animation-duration: 12s;
+    animation-direction: reverse;
+  }
+  
+  /* Holographic Effect */
+  .hologram {
+    background: linear-gradient(
+      45deg,
+      rgba(29, 143, 91, 0.1) 0%,
+      rgba(255, 195, 0, 0.1) 25%,
+      rgba(29, 143, 91, 0.1) 50%,
+      rgba(255, 195, 0, 0.1) 75%,
+      rgba(29, 143, 91, 0.1) 100%
+    );
+    background-size: 200% 200%;
+    animation: hologramShift 3s ease infinite;
+  }
+  
+  /* Epic Button */
+  .epic-button {
+    background: linear-gradient(135deg, #1d8f5b 0%, #22c55e 50%, #10b981 100%);
+    background-size: 200% 200%;
+    box-shadow: 
+      0 0 30px rgba(29, 143, 91, 0.5),
+      0 0 60px rgba(29, 143, 91, 0.3),
+      0 0 90px rgba(29, 143, 91, 0.1);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .epic-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+  }
+  
+  .epic-button:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+      0 0 40px rgba(29, 143, 91, 0.7),
+      0 0 80px rgba(29, 143, 91, 0.4),
+      0 0 120px rgba(29, 143, 91, 0.2),
+      0 20px 40px rgba(0, 0, 0, 0.3);
+    background-position: 100% 0;
+  }
+  
+  .epic-button:hover::before {
+    left: 100%;
+  }
+  
+  .epic-button:active {
+    transform: translateY(-4px) scale(0.98);
+  }
+  
+  .epic-button:disabled {
+    transform: none;
+    box-shadow: 
+      0 0 15px rgba(29, 143, 91, 0.3),
+      0 0 30px rgba(29, 143, 91, 0.2);
+  }
+  
+  /* Logo Animation */
+  .logo-cosmic {
+    animation: logoFloat 6s ease-in-out infinite;
+    filter: 
+      drop-shadow(0 0 20px rgba(255, 255, 255, 0.5))
+      drop-shadow(0 0 40px rgba(29, 143, 91, 0.3));
+  }
+  
+  /* Text Glow Animation */
+  .text-glow {
+    animation: textGlow 4s ease-in-out infinite alternate;
+  }
+  
+  /* Ripple Effect */
+  .ripple {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+  
+  .ripple:hover::after {
+    width: 300px;
+    height: 300px;
+  }
+  
+  /* Scanning Line Effect */
+  .scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #1d8f5b, transparent);
+    animation: scan 3s linear infinite;
+  }
+  
+  /* INTERACTIVE STAR FIELD */
+  .star-field {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    animation: fadeInStars 2s ease-out 0.5s forwards;
+  }
+  
+  /* Reduce star count on mobile */
+  @media (max-width: 768px) {
+    .star-field .star:nth-child(n+11) {
+      display: none;
+    }
+  }
+  
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle var(--duration) ease-in-out infinite alternate;
+  }
+  
+  .star-small {
+    width: 1px;
+    height: 1px;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+  }
+  
+  .star-medium {
+    width: 2px;
+    height: 2px;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+  }
+  
+  .star-large {
+    width: 3px;
+    height: 3px;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 1);
+  }
+  
+  /* Upward Shooting Star */
+  .shooting-star-upward {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: linear-gradient(135deg, #fff, transparent);
+    border-radius: 50%;
+    animation: shootUpwardWithGap 9s linear infinite;
+  }
+  
+  .shooting-star-upward::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), transparent);
+    transform: translateX(-40px) translateY(30px) rotate(-45deg);
+  }
+  
+  /* Asteroid Belt */
+  .asteroid-belt {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 380px;
+    height: 380px;
+    border: 1px dashed rgba(139, 92, 246, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .asteroid {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(139, 92, 246, 0.7);
+    border-radius: 30%;
+    animation: asteroidFloat 25s linear infinite;
+    transform-origin: 190px 190px;
+  }
+  
+  /* Comet */
+  .comet {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, #60a5fa, #3b82f6);
+    border-radius: 50%;
+    animation: cometOrbit 45s linear infinite;
+    transform-origin: 0 0;
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.8);
+  }
+  
+  .comet::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(96, 165, 250, 0.8), transparent);
+    transform: translate(-100%, -50%);
+    border-radius: 50%;
+  }
+
+  /* Geometric Patterns */
+  .geometric {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border: 2px solid rgba(29, 143, 91, 0.2);
+    animation: geometricRotate 20s linear infinite;
+  }
+  
+  .geometric:nth-child(1) {
+    top: 10%;
+    left: 10%;
+    animation-delay: 0s;
+  }
+  
+  .geometric:nth-child(2) {
+    top: 20%;
+    right: 15%;
+    animation-delay: -5s;
+  }
+  
+  .geometric:nth-child(3) {
+    bottom: 30%;
+    left: 20%;
+    animation-delay: -10s;
+  }
+  
+  /* Status Indicators */
+  .status-glow {
+    animation: statusPulse 2s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  /* Animations */
+  @keyframes cosmicFlow {
+    0%, 100% { background-position: 0% 50%; }
+    25% { background-position: 100% 0%; }
+    50% { background-position: 100% 100%; }
+    75% { background-position: 0% 100%; }
+  }
+  
+  /* SOLAR SYSTEM ANIMATIONS */
+  @keyframes sunPulse {
+    0%, 100% { 
+      transform: translate(-50%, -50%) scale(1); 
+      box-shadow: 0 0 30px #ffc300, 0 0 60px #ffc300, 0 0 90px #ff9500;
+    }
+    50% { 
+      transform: translate(-50%, -50%) scale(1.1); 
+      box-shadow: 0 0 40px #ffc300, 0 0 80px #ffc300, 0 0 120px #ff9500;
+    }
+  }
+  
+  @keyframes orbit1 {
+    0% { transform: translate(-50%, -50%) rotate(0deg) translateX(60px) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg) translateX(60px) rotate(-360deg); }
+  }
+  
+  @keyframes orbit2 {
+    0% { transform: translate(-50%, -50%) rotate(0deg) translateX(90px) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg); }
+  }
+  
+  @keyframes orbit3 {
+    0% { transform: translate(-50%, -50%) rotate(0deg) translateX(120px) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg) translateX(120px) rotate(-360deg); }
+  }
+  
+  @keyframes orbit4 {
+    0% { transform: translate(-50%, -50%) rotate(0deg) translateX(160px) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg) translateX(160px) rotate(-360deg); }
+  }
+  
+  @keyframes orbit5 {
+    0% { transform: translate(-50%, -50%) rotate(0deg) translateX(210px) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg) translateX(210px) rotate(-360deg); }
+  }
+  
+  @keyframes orbit6 {
+    0% { transform: translate(-50%, -50%) rotate(0deg) translateX(270px) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg) translateX(270px) rotate(-360deg); }
+  }
+  
+  @keyframes orbit7 {
+    0% { transform: translate(-50%, -50%) rotate(0deg) translateX(340px) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg) translateX(340px) rotate(-360deg); }
+  }
+  
+  @keyframes orbit8 {
+    0% { transform: translate(-50%, -50%) rotate(0deg) translateX(420px) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg) translateX(420px) rotate(-360deg); }
+  }
+  
+  @keyframes orbit9 {
+    0% { transform: translate(-50%, -50%) rotate(0deg) translateX(510px) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg) translateX(510px) rotate(-360deg); }
+  }
+  
+  @keyframes hologramShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  @keyframes logoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+  
+  @keyframes textGlow {
+    from { text-shadow: 0 0 20px rgba(29, 143, 91, 0.3); }
+    to { text-shadow: 0 0 30px rgba(29, 143, 91, 0.6), 0 0 40px rgba(29, 143, 91, 0.3); }
+  }
+  
+  @keyframes scan {
+    0% { transform: translateY(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(400px); opacity: 0; }
+  }
+  
+  @keyframes geometricRotate {
+    0% { transform: rotate(0deg) scale(1); opacity: 0.2; }
+    50% { transform: rotate(180deg) scale(1.5); opacity: 0.4; }
+    100% { transform: rotate(360deg) scale(1); opacity: 0.2; }
+  }
+  
+  @keyframes statusPulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.6), 0 0 25px rgba(34, 197, 94, 0.3); }
+    50% { box-shadow: 0 0 25px rgba(34, 197, 94, 0.9), 0 0 40px rgba(34, 197, 94, 0.5), 0 0 60px rgba(34, 197, 94, 0.3); }
+  }
+
+  @keyframes liveGlow {
+    0%, 100% {
+      box-shadow:
+        0 0 0 3px #22c55e,
+        0 0 20px 8px rgba(34, 197, 94, 0.8),
+        0 0 40px 15px rgba(34, 197, 94, 0.6),
+        0 0 80px 25px rgba(34, 197, 94, 0.4);
+    }
+    50% {
+      box-shadow:
+        0 0 0 3px #22c55e,
+        0 0 30px 12px rgba(34, 197, 94, 1),
+        0 0 60px 25px rgba(34, 197, 94, 0.8),
+        0 0 120px 40px rgba(34, 197, 94, 0.6);
+    }
+  }
+
+  .live-glow {
+    animation: liveGlow 2s ease-in-out infinite !important;
+    border: 3px solid #22c55e !important;
+  }
+  
+  /* NEW EPIC ANIMATIONS */
+  @keyframes blackFadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  
+  @keyframes cosmicFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  
+  @keyframes fadeInStars {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  
+  @keyframes twinkle {
+    0% { opacity: 0.3; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.2); }
+  }
+  
+  @keyframes shootUpwardWithGap {
+    0% { 
+      transform: translate(0, 0); 
+      opacity: 0; 
+    }
+    2% { opacity: 1; }
+    20% { 
+      transform: translate(calc(100vw + 200px), calc(-100vh - 200px)); 
+      opacity: 1; 
+    }
+    22% { opacity: 0; }
+    100% { 
+      transform: translate(calc(100vw + 200px), calc(-100vh - 200px)); 
+      opacity: 0; 
+    }
+  }
+  
+  @keyframes asteroidFloat {
+    0% { transform: rotate(0deg) translateX(190px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(190px) rotate(-360deg); }
+  }
+  
+  @keyframes cometOrbit {
+    0% { transform: translate(-50%, -50%) rotate(0deg) translateX(600px) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg) translateX(600px) rotate(-360deg); }
+  }
+  
+  @keyframes glitchText {
+    0%, 90%, 100% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+  }
+  
+  @keyframes typewriter {
+    0% { width: 0; }
+    100% { width: 100%; }
+  }
+  
+  @keyframes cardTilt {
+    0%, 100% { transform: perspective(1000px) rotateX(0deg) rotateY(0deg); }
+  }
+  
+  @keyframes portalOpen {
+    0% { 
+      transform: scale(0) rotate(0deg);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2) rotate(180deg);
+      opacity: 0.8;
+    }
+    100% { 
+      transform: scale(1) rotate(360deg);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes warpSpeed {
+    0% { 
+      transform: scale(1) translateZ(0);
+      opacity: 1;
+    }
+    100% { 
+      transform: scale(50) translateZ(-1000px);
+      opacity: 0;
+    }
+  }
+  
+  @keyframes floatInGlass {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+    25% { transform: translate(20px, -30px) scale(1.2); opacity: 0.8; }
+    50% { transform: translate(-15px, -60px) scale(0.8); opacity: 0.5; }
+    75% { transform: translate(25px, -40px) scale(1.1); opacity: 0.7; }
+  }
+  
+  @keyframes laserScan {
+    0% { transform: translateX(-100%); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateX(100%); opacity: 0; }
+  }
+  
+  /* Moon and Jupiter Moons Animations */
+  @keyframes moonOrbit {
+    0% { transform: translateX(-50%) translateY(-50%) rotate(0deg) translateX(10px) rotate(0deg); }
+    100% { transform: translateX(-50%) translateY(-50%) rotate(360deg) translateX(10px) rotate(-360deg); }
+  }
+  
+  @keyframes jupiterMoon1 {
+    0% { transform: translateX(-50%) rotate(0deg) translateY(-15px) rotate(0deg); }
+    100% { transform: translateX(-50%) rotate(360deg) translateY(-15px) rotate(-360deg); }
+  }
+  
+  @keyframes jupiterMoon2 {
+    0% { transform: translateY(-50%) rotate(0deg) translateX(18px) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg) translateX(18px) rotate(-360deg); }
+  }
+  
+  @keyframes jupiterMoon3 {
+    0% { transform: translateX(-50%) rotate(0deg) translateY(15px) rotate(0deg); }
+    100% { transform: translateX(-50%) rotate(360deg) translateY(15px) rotate(-360deg); }
+  }
+  
+  @keyframes jupiterMoon4 {
+    0% { transform: translateY(-50%) rotate(0deg) translateX(-18px) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg) translateX(-18px) rotate(-360deg); }
+  }
+
+  /* True Glass Morphism for Dark Mode */
+
+  /* Glass morphism borders - ultra thin and light */
+  .dark [class*="border"]:not([class*="border-0"]):not([class*="border-none"]) {
+    border-width: 0.5px;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .dark .border {
+    border-width: 0.5px;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .dark .border-t {
+    border-top-width: 0.5px;
+    border-top-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .dark .border-b {
+    border-bottom-width: 0.5px;
+    border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .dark .border-l {
+    border-left-width: 0.5px;
+    border-left-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .dark .border-r {
+    border-right-width: 0.5px;
+    border-right-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .dark .divide-y > *:not(:first-child) {
+    border-top-width: 0.5px;
+    border-top-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .dark .divide-x > *:not(:first-child) {
+    border-left-width: 0.5px;
+    border-left-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  /* True Glass Morphism Cards - Frosted Glass Effect */
+  .dark .bg-white,
+  .dark .bg-gray-50,
+  .dark .bg-gray-100,
+  .dark [class*="bg-gray"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow:
+      0 8px 32px 0 rgba(0, 0, 0, 0.37),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 0 0 rgba(255, 255, 255, 0.03);
+  }
+
+  /* Enhanced glass effect for rounded containers */
+  .dark .rounded-lg,
+  .dark .rounded-xl,
+  .dark .rounded-2xl {
+    position: relative;
+  }
+
+  .dark .rounded-lg::before,
+  .dark .rounded-xl::before,
+  .dark .rounded-2xl::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    padding: 0.5px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.15) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.15) 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Skeleton loading glass effect - only apply to skeleton components */
+  .dark .skeleton.animate-pulse {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.03) 100%
+    ) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /* Dynamic HTML Content Dark Mode Support */
+  /* Use this class for any container with dangerouslySetInnerHTML to automatically handle dark mode */
+
+  /* Remove all inline background colors in dark mode to prevent white text on white background */
+  .dark .dynamic-html-content [style*="background-color"],
+  .dark .dynamic-html-content [style*="background"],
+  .dark .dynamic-html-content * {
+    background-color: transparent !important;
+    background: transparent !important;
+  }
+
+  .dynamic-html-content * {
+    color: #111827 !important;
+  }
+
+  .dark .dynamic-html-content * {
+    color: #e5e7eb !important;
+  }
+
+  .dynamic-html-content h1,
+  .dynamic-html-content h2,
+  .dynamic-html-content h3,
+  .dynamic-html-content h4,
+  .dynamic-html-content h5,
+  .dynamic-html-content h6 {
+    color: #111827 !important;
+  }
+
+  .dark .dynamic-html-content h1,
+  .dark .dynamic-html-content h2,
+  .dark .dynamic-html-content h3,
+  .dark .dynamic-html-content h4,
+  .dark .dynamic-html-content h5,
+  .dark .dynamic-html-content h6 {
+    color: #ffffff !important;
+  }
+
+  .dynamic-html-content p,
+  .dynamic-html-content li,
+  .dynamic-html-content span,
+  .dynamic-html-content div {
+    color: #111827 !important;
+  }
+
+  .dark .dynamic-html-content p,
+  .dark .dynamic-html-content li,
+  .dark .dynamic-html-content span,
+  .dark .dynamic-html-content div {
+    color: #e5e7eb !important;
+  }
+
+  .dynamic-html-content strong,
+  .dynamic-html-content b,
+  .dynamic-html-content em,
+  .dynamic-html-content i {
+    color: #111827 !important;
+  }
+
+  .dark .dynamic-html-content strong,
+  .dark .dynamic-html-content b,
+  .dark .dynamic-html-content em,
+  .dark .dynamic-html-content i {
+    color: #ffffff !important;
+  }
+
+  .dynamic-html-content a {
+    color: #2563eb !important;
+  }
+
+  .dark .dynamic-html-content a {
+    color: #60a5fa !important;
+  }
+
+  .dynamic-html-content code,
+  .dynamic-html-content pre {
+    color: #111827 !important;
+    background-color: #f3f4f6 !important;
+  }
+
+  .dark .dynamic-html-content code,
+  .dark .dynamic-html-content pre {
+    color: #e5e7eb !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .dynamic-html-content blockquote {
+    color: #374151 !important;
+    border-left-color: #d1d5db !important;
+  }
+
+  .dark .dynamic-html-content blockquote {
+    color: #d1d5db !important;
+    border-left-color: #4b5563 !important;
+  }
+
+  .dynamic-html-content table,
+  .dynamic-html-content th,
+  .dynamic-html-content td {
+    color: #111827 !important;
+    border-color: #d1d5db !important;
+  }
+
+  .dark .dynamic-html-content table,
+  .dark .dynamic-html-content th,
+  .dark .dynamic-html-content td {
+    color: #e5e7eb !important;
+    border-color: #4b5563 !important;
+  }
+
+  .dynamic-html-content ul,
+  .dynamic-html-content ol {
+    color: #111827 !important;
+  }
+
+  .dark .dynamic-html-content ul,
+  .dark .dynamic-html-content ol {
+    color: #e5e7eb !important;
+  }
+}

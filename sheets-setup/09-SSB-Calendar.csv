@@ -1,0 +1,6 @@
+Event ID,Batch,Event Type,Event Name,Description,Start Date,Start Time,End Date,End Time,Location,Link,Student Level Show,Attendees
+CAL001,MBA-2024,Session,Finance Class - Week 1,Weekly finance lecture,20-Jan-2025,10:00 AM,20-Jan-2025,11:00 AM,Online,https://zoom.us/j/123,No,
+CAL002,MBA-2024,Session,Marketing Class - Week 1,Weekly marketing lecture,21-Jan-2025,02:00 PM,21-Jan-2025,03:30 PM,Online,https://zoom.us/j/124,No,
+CAL003,MBA-2024,Assessment,Mid-Term Quiz 1,Finance mid-term assessment,25-Jan-2025,10:00 AM,25-Jan-2025,11:00 AM,Online,https://exam.portal/quiz1,No,
+CAL004,MBA-2024,Workshop,Resume Building,Career development workshop,28-Jan-2025,02:00 PM,28-Jan-2025,05:00 PM,Campus Room 101,,No,
+CAL005,MBA-2024,Others,Deadline - Assignment 1,Submit Assignment 1,30-Jan-2025,11:59 PM,30-Jan-2025,11:59 PM,Online,,No,

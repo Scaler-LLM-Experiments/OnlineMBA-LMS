@@ -1,0 +1,531 @@
+/* ============================================
+   Christmas Theme Styles - Standalone
+   ============================================ */
+
+/* Snowfall Animation */
+.xmas-snowfall {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.xmas-snowflake {
+  position: absolute;
+  top: -10px;
+  color: #fff;
+  font-size: 1em;
+  font-family: Arial, sans-serif;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  animation: xmas-fall linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes xmas-fall {
+  0% {
+    top: -10%;
+    transform: translateX(0) rotate(0deg);
+  }
+  100% {
+    top: 100%;
+    transform: translateX(100px) rotate(360deg);
+  }
+}
+
+/* Snow Hover Effect for Logo and Sidebar */
+.xmas-snow-hover {
+  position: relative;
+  overflow: visible !important;
+}
+
+.xmas-snow-hover::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 0;
+  right: 0;
+  height: 15px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), transparent);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.xmas-snow-hover:hover::before {
+  opacity: 1;
+  animation: xmas-snow-sparkle 1.5s ease-in-out infinite;
+}
+
+@keyframes xmas-snow-sparkle {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.5);
+  }
+}
+
+/* Snowflake particles on hover */
+.xmas-snow-hover::after {
+  content: '❄';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.xmas-snow-hover:hover::after {
+  animation: xmas-snow-float 2s ease-out infinite;
+}
+
+@keyframes xmas-snow-float {
+  0% {
+    opacity: 0;
+    top: -10px;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    top: -30px;
+    transform: translateX(-50%) rotate(180deg);
+  }
+}
+
+/* Santa Sleigh with Reindeer Animation */
+.xmas-santa-container {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 20px;
+  position: relative;
+  height: 70px;
+  animation: xmas-santa-float 3s ease-in-out infinite;
+}
+
+@keyframes xmas-santa-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.xmas-santa-sleigh-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: xmas-santa-ride 2s ease-in-out infinite;
+  filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.25));
+}
+
+@keyframes xmas-santa-ride {
+  0%, 100% {
+    transform: rotate(-1deg);
+  }
+  50% {
+    transform: rotate(1deg);
+  }
+}
+
+/* Reindeer leading the sleigh */
+.xmas-reindeer {
+  font-size: 36px;
+  display: inline-block;
+  animation: xmas-reindeer-gallop 0.6s ease-in-out infinite;
+}
+
+.xmas-reindeer:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+@keyframes xmas-reindeer-gallop {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.05);
+  }
+}
+
+/* Connection line between reindeer and sleigh */
+.xmas-connection {
+  width: 30px;
+  height: 2px;
+  background: linear-gradient(90deg, #8B4513, transparent);
+  margin: 0 -8px;
+  position: relative;
+  top: 8px;
+}
+
+/* Santa in sleigh */
+.xmas-santa-sleigh {
+  font-size: 42px;
+  display: inline-block;
+  position: relative;
+}
+
+/* Stars and sparkles around the sleigh */
+.xmas-santa-container::before,
+.xmas-santa-container::after {
+  content: '⭐';
+  position: absolute;
+  font-size: 18px;
+  animation: xmas-sparkle 2s ease-in-out infinite;
+}
+
+.xmas-santa-container::before {
+  left: 0px;
+  top: 0px;
+}
+
+.xmas-santa-container::after {
+  right: 10px;
+  top: 5px;
+  content: '✨';
+  animation-delay: 1s;
+}
+
+@keyframes xmas-sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.5) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
+/* Snow trail effect behind sleigh */
+.xmas-snow-trail {
+  position: absolute;
+  right: -15px;
+  top: 50%;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.xmas-snow-trail span {
+  font-size: 14px;
+  opacity: 0;
+  animation: xmas-trail 2s ease-out infinite;
+}
+
+.xmas-snow-trail span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.xmas-snow-trail span:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.xmas-snow-trail span:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+@keyframes xmas-trail {
+  0% {
+    opacity: 0;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  20% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-30px) translateY(15px) scale(0.3);
+  }
+}
+
+/* Christmas Tree Animation */
+.xmas-tree-container {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 15px;
+  position: relative;
+  animation: xmas-tree-sway 3s ease-in-out infinite;
+}
+
+@keyframes xmas-tree-sway {
+  0%, 100% {
+    transform: rotate(-1deg);
+  }
+  50% {
+    transform: rotate(1deg);
+  }
+}
+
+.xmas-tree {
+  font-size: 40px;
+  position: relative;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* Decorative lights on tree */
+.xmas-tree-lights {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.xmas-light {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  animation: xmas-blink 1.5s ease-in-out infinite;
+}
+
+.xmas-light:nth-child(1) {
+  top: 8px;
+  left: 50%;
+  background-color: #ff0000;
+  box-shadow: 0 0 8px #ff0000;
+}
+
+.xmas-light:nth-child(2) {
+  top: 18px;
+  left: 35%;
+  background-color: #ffff00;
+  box-shadow: 0 0 8px #ffff00;
+  animation-delay: 0.3s;
+}
+
+.xmas-light:nth-child(3) {
+  top: 18px;
+  right: 35%;
+  background-color: #00ff00;
+  box-shadow: 0 0 8px #00ff00;
+  animation-delay: 0.6s;
+}
+
+.xmas-light:nth-child(4) {
+  top: 28px;
+  left: 25%;
+  background-color: #0000ff;
+  box-shadow: 0 0 8px #0000ff;
+  animation-delay: 0.9s;
+}
+
+.xmas-light:nth-child(5) {
+  top: 28px;
+  right: 25%;
+  background-color: #ff00ff;
+  box-shadow: 0 0 8px #ff00ff;
+  animation-delay: 1.2s;
+}
+
+@keyframes xmas-blink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+}
+
+/* Star on top of tree */
+.xmas-tree-star {
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  animation: xmas-star-twinkle 2s ease-in-out infinite;
+}
+
+@keyframes xmas-star-twinkle {
+  0%, 100% {
+    transform: translateX(-50%) rotate(0deg) scale(1);
+    filter: brightness(1);
+  }
+  25% {
+    transform: translateX(-50%) rotate(-15deg) scale(1.2);
+    filter: brightness(1.5);
+  }
+  75% {
+    transform: translateX(-50%) rotate(15deg) scale(1.2);
+    filter: brightness(1.5);
+  }
+}
+
+/* Sidebar Item Snow Effect */
+.xmas-sidebar-item {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.xmas-sidebar-item:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+}
+
+/* Mini snowflakes on sidebar hover */
+.xmas-sidebar-item::before {
+  content: '❅';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.xmas-sidebar-item:hover::before {
+  opacity: 1;
+  animation: xmas-sidebar-snow-spin 2s linear infinite;
+}
+
+@keyframes xmas-sidebar-snow-spin {
+  0% {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+/* Festive Border Glow */
+.xmas-glow {
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3),
+              0 0 40px rgba(255, 215, 0, 0.2),
+              0 0 60px rgba(255, 215, 0, 0.1);
+  animation: xmas-glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes xmas-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3),
+                0 0 40px rgba(255, 215, 0, 0.2),
+                0 0 60px rgba(255, 215, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5),
+                0 0 60px rgba(255, 215, 0, 0.3),
+                0 0 90px rgba(255, 215, 0, 0.2);
+  }
+}
+
+/* Santa hat on logo */
+.xmas-logo-hat {
+  position: absolute;
+  top: -16px;
+  right: -6px;
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 20px solid #dc2626;
+  z-index: 10;
+  animation: xmas-hat-wiggle 3s ease-in-out infinite;
+  filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.3));
+  transform: rotate(15deg);
+}
+
+/* White pom-pom on top of hat */
+.xmas-logo-hat::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+}
+
+/* White trim at bottom of hat */
+.xmas-logo-hat::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: -13px;
+  width: 26px;
+  height: 4px;
+  background: white;
+  border-radius: 2px;
+}
+
+@keyframes xmas-hat-wiggle {
+  0%, 100% {
+    transform: rotate(15deg);
+  }
+  50% {
+    transform: rotate(20deg) scale(1.05);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .xmas-santa-container {
+    height: 40px;
+    margin-left: 10px;
+  }
+
+  .xmas-santa-sleigh {
+    font-size: 32px;
+  }
+
+  .xmas-tree {
+    font-size: 28px;
+  }
+
+  .xmas-tree-container {
+    margin-left: 10px;
+  }
+
+  .xmas-logo-hat {
+    font-size: 22px;
+    top: -10px;
+    right: -8px;
+  }
+}
+
+/* Optional: Holly decoration for corners */
+.xmas-holly-corner {
+  position: absolute;
+  font-size: 24px;
+  opacity: 0.7;
+  animation: xmas-holly-rotate 4s ease-in-out infinite;
+}
+
+.xmas-holly-corner.top-left {
+  top: 10px;
+  left: 10px;
+}
+
+.xmas-holly-corner.top-right {
+  top: 10px;
+  right: 10px;
+}
+
+@keyframes xmas-holly-rotate {
+  0%, 100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
