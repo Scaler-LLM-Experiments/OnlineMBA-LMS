@@ -575,11 +575,12 @@ const AssignmentListPage: React.FC = () => {
             const glowColor = getGlowColor(assignment, activeTab === 'active');
 
             // Define glow styles based on color - Enhanced for dark mode
+            // Using orange (#fd621b) as default instead of green
             const glowStyles = {
               green: {
-                border: 'border-green-500/30 hover:border-green-500/60 dark:border-green-500/50 dark:hover:border-green-500',
-                shadow: 'hover:shadow-[0_0_40px_rgba(67,160,71,0.4)] dark:hover:shadow-[0_0_50px_rgba(67,160,71,0.8)]',
-                gradient: 'from-green-500/10 via-transparent to-green-500/5 dark:from-green-500/20 dark:to-green-500/10'
+                border: 'border-[#fd621b]/30 hover:border-[#fd621b]/60 dark:border-[#fd621b]/50 dark:hover:border-[#fd621b]',
+                shadow: 'hover:shadow-[0_0_40px_rgba(253,98,27,0.4)] dark:hover:shadow-[0_0_50px_rgba(253,98,27,0.8)]',
+                gradient: 'from-[#fd621b]/10 via-transparent to-[#fd621b]/5 dark:from-[#fd621b]/20 dark:to-[#fd621b]/10'
               },
               yellow: {
                 border: 'border-yellow-500/40 hover:border-yellow-500/70 dark:border-yellow-500/60 dark:hover:border-yellow-500',
@@ -685,7 +686,7 @@ const AssignmentListPage: React.FC = () => {
                           : activeTab === 'expired'
                           ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700'
                           : activeTab === 'completed'
-                          ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700'
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700'
                           : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
                       }`}>
                         <span className="flex items-center gap-1">

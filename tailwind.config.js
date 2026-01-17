@@ -225,7 +225,7 @@ module.exports = {
         '3xl': '0',
         '4xl': '0',
         '5xl': '0',
-        'full': '0',
+        'full': '9999px', // Keep full rounded for badges, avatars, icons
       },
 
       transitionDuration: {

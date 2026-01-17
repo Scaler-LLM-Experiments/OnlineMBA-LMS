@@ -21,8 +21,16 @@
   }
 
   /* Global border-radius reset to 0 (sharp corners) */
-  *, *::before, *::after {
+  /* Exception for SVG elements and elements with .rounded-full class */
+  *:not(svg):not(svg *):not(.rounded-full):not(.icon-rounded),
+  *::before,
+  *::after {
     border-radius: 0 !important;
+  }
+
+  /* Allow rounded elements when explicitly needed */
+  .rounded-full, .icon-rounded, svg circle {
+    border-radius: 9999px !important;
   }
 
   :root {

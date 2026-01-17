@@ -1564,7 +1564,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
               activeTab === 'active' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' :
               activeTab === 'upcoming' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
               activeTab === 'expired' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
-              'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
+              'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
             }`}>
               {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
             </Badge>
