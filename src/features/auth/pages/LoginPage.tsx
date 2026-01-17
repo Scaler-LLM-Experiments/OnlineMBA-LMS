@@ -9,6 +9,7 @@ import { GraduationCap, LogIn, ArrowRight, CheckCircle } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { APP_CONFIG } from '../../../core/config/constants';
 import { Button } from '../../../shared/components/ui/Button';
+import { useToast } from '../../../shared/components/ui/Toast';
 
 // ============================================
 // Types
@@ -42,6 +43,7 @@ export const LoginPage = memo(function LoginPage({
 }: LoginPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const toast = useToast();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(error || null);
 
@@ -57,17 +59,30 @@ export const LoginPage = memo(function LoginPage({
       await onGoogleSignIn();
       navigate(from, { replace: true });
     } catch (err) {
+      console.log('[LoginPage] Caught error:', err);
       const message = err instanceof Error ? err.message : 'Failed to sign in';
+      console.log('[LoginPage] Setting authError to:', message);
       setAuthError(message);
+      // Show toast notification
+      toast.error(message, {
+        title: 'Access Denied',
+        duration: 10000, // 10 seconds
+      });
     } finally {
       setIsSigningIn(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onGoogleSignIn, navigate, from]);
 
-  // Clear error after 5 seconds
+  // Debug: Log when authError changes
+  useEffect(() => {
+    console.log('[LoginPage] authError state changed to:', authError);
+  }, [authError]);
+
+  // Clear error after 15 seconds (longer for admin contact messages)
   useEffect(() => {
     if (authError) {
-      const timer = setTimeout(() => setAuthError(null), 5000);
+      const timer = setTimeout(() => setAuthError(null), 15000);
       return () => clearTimeout(timer);
     }
   }, [authError]);

@@ -67,6 +67,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
   const [loadingSubmission, setLoadingSubmission] = useState(false);
   const [showUpdateConfirmation, setShowUpdateConfirmation] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Prevent double submission
 
   // Peer Rating & Remarks state
   const [peerRatings, setPeerRatings] = useState<Record<string, { rating: number; remark: string }>>({});
@@ -911,7 +912,14 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
   };
 
   const handleSubmit = async (isUpdate = false) => {
+    // Prevent double submission
+    if (isSubmitting) {
+      return;
+    }
+
     try {
+      setIsSubmitting(true);
+
       // Track submission start
       tracking.trackSubmissionStart({
         assignment,
@@ -926,6 +934,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
       // Check if user is authenticated
       if (!user?.email || !user?.displayName) {
         toast.error('User not authenticated');
+        setIsSubmitting(false);
         return;
       }
 
@@ -1322,6 +1331,8 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
           error_type: 'UNEXPECTED_ERROR',
         }
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1441,9 +1452,9 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
       };
     } else {
       return {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-200 dark:border-green-700',
-        text: 'text-green-600 dark:text-green-400'
+        bg: 'bg-orange-50 dark:bg-orange-900/20',
+        border: 'border-orange-200 dark:border-orange-700',
+        text: 'text-orange-600 dark:text-orange-400'
       };
     }
   };
@@ -1552,7 +1563,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
 
             {/* Status Badge */}
             <Badge className={`${
-              activeTab === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+              activeTab === 'active' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' :
               activeTab === 'upcoming' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
               activeTab === 'expired' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
               'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
@@ -1697,14 +1708,14 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
             const hasAnyData = hasGroupData || hasAnswers || hasFiles || hasUrls;
 
             return (
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-5">
-                <h3 className="font-semibold text-green-800 dark:text-green-300 mb-3 flex items-center gap-2 text-lg">
+              <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg p-5">
+                <h3 className="font-semibold text-orange-800 dark:text-orange-300 mb-3 flex items-center gap-2 text-lg">
                   <CheckCircle className="w-6 h-6" />
                   Your Submission Details
                 </h3>
 
                 {/* Submission Metadata */}
-                <div className="mb-4 pb-3 border-b border-green-200 dark:border-green-700">
+                <div className="mb-4 pb-3 border-b border-orange-200 dark:border-orange-700">
                   {/* Show submission info based on count */}
                   {submissionCount === 1 ? (
                     <div className="space-y-2">
@@ -1753,7 +1764,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
 
                 {/* Show message if no data */}
                 {!hasAnyData && (
-                  <div className="bg-white dark:bg-gray-800 p-4 rounded border border-green-200 dark:border-green-700 text-center">
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded border border-orange-200 dark:border-orange-700 text-center">
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Your submission was recorded, but no detailed data is available to display.
                     </p>
@@ -1767,7 +1778,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
                     <Users className="w-4 h-4" />
                     Group Information
                   </h4>
-                  <div className="bg-white dark:bg-gray-800 p-3 rounded border border-green-200 dark:border-green-700">
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded border border-orange-200 dark:border-orange-700">
                     {previousSubmission.groupName && (
                       <p className="text-sm text-gray-700 dark:text-gray-300">
                         <span className="font-medium">Group Name:</span> {previousSubmission.groupName}
@@ -1799,7 +1810,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
                     <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">Your Answers</h4>
                     <div className="space-y-3">
                       {answeredQuestions.map(([question, answer]: [string, any], idx) => (
-                        <div key={idx} className="bg-white dark:bg-gray-800 p-4 rounded border border-green-200 dark:border-green-700">
+                        <div key={idx} className="bg-white dark:bg-gray-800 p-4 rounded border border-orange-200 dark:border-orange-700">
                           <p className="text-sm font-bold text-gray-900 dark:text-white mb-2 bg-blue-50 dark:bg-blue-900/20 p-2 rounded border-l-4 border-blue-500">
                             {question}
                           </p>
@@ -1824,7 +1835,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
                     {previousSubmission.files.map((file: any, idx: number) => (
                       <div
                         key={idx}
-                        className="bg-white dark:bg-gray-800 p-3 rounded border border-green-200 dark:border-green-700 flex items-center justify-between"
+                        className="bg-white dark:bg-gray-800 p-3 rounded border border-orange-200 dark:border-orange-700 flex items-center justify-between"
                       >
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-gray-600 dark:text-gray-400" />
@@ -1861,7 +1872,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
                         href={urlItem.link || urlItem.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="bg-white dark:bg-gray-800 p-3 rounded border border-green-200 dark:border-green-700 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        className="bg-white dark:bg-gray-800 p-3 rounded border border-orange-200 dark:border-orange-700 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
                         <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{urlItem.name}</span>
                         <ExternalLink className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -2527,14 +2538,21 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
           {((canSubmit && !isCompleted) || (isCompleted && isUpdating && !isPastDeadline)) && (
             <Button
               onClick={() => handleSubmit(isUpdating)}
-              className={isUpdating ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-primary hover:bg-primary/90 text-white"}
-              disabled={files.some(f => f.status === 'uploading' && f.file.size >= 20 * 1024 * 1024)}
+              className={`${isUpdating ? "bg-blue-600 hover:bg-blue-700" : "bg-[#fd621b] hover:bg-[#fc9100]"} text-white flex items-center gap-2`}
+              disabled={isSubmitting || files.some(f => f.status === 'uploading' && f.file.size >= 20 * 1024 * 1024)}
             >
-              {files.some(f => f.status === 'uploading' && f.file.size >= 20 * 1024 * 1024)
-                ? 'Uploading large files...'
-                : isUpdating
-                ? 'Update Submission'
-                : 'Submit Assignment'}
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  {isUpdating ? 'Updating...' : 'Submitting...'}
+                </>
+              ) : files.some(f => f.status === 'uploading' && f.file.size >= 20 * 1024 * 1024) ? (
+                'Uploading large files...'
+              ) : isUpdating ? (
+                'Update Submission'
+              ) : (
+                'Submit Assignment'
+              )}
             </Button>
           )}
           {canEdit && !isUpdating && (

@@ -3,10 +3,10 @@ import { StudentsCornerActivity, StudentsCornerDashboardData, LeaderboardEntry }
 import { auth } from '../firebase/config';
 
 // Main Backend API - Student Portal (all features except placement)
-const BACKEND_URL = process.env.REACT_APP_BACKEND_API_URL || 'https://script.google.com/macros/s/AKfycbzqM7YP9ppMpyCSdwJZibtjtnXcGY7InCox01frgodDXHr7tHh-LgaXTuNngoy2rQnR/exec';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_API_URL || '';
 
 // Placement Backend API - Job Portal & Placement features only
-const PLACEMENT_BACKEND_URL = process.env.REACT_APP_PLACEMENT_BACKEND_URL || 'https://script.google.com/macros/s/AKfycbzAY1VyLRXACxEhuMdJKpDTOCFyDPcGwgO67TLIgVv-XX6x6dhAdJrrZ2Wtawh9Dlxp/exec';
+const PLACEMENT_BACKEND_URL = process.env.REACT_APP_PLACEMENT_BACKEND_URL || '';
 
 // Log the backend URLs being used
 console.log('🚀 SSB Main Backend URL:', BACKEND_URL);

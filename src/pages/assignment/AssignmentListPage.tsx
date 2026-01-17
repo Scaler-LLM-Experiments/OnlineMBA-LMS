@@ -397,8 +397,8 @@ const AssignmentListPage: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div className="border-b border-border">
-        <div className="flex overflow-x-auto">
+      <div className="border-b border-border bg-white dark:bg-gray-900">
+        <div className="flex flex-wrap justify-start gap-1 p-2">
           {tabs.map((tab) => (
             <button
               key={tab.key}
@@ -415,27 +415,29 @@ const AssignmentListPage: React.FC = () => {
                 });
               }}
               className={`
-                px-6 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors
+                px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-200
                 ${activeTab === tab.key
-                  ? 'border-[#43a047] text-[#43a047]'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  ? 'bg-[#fd621b] text-white shadow-md'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                 }
               `}
             >
-              {tab.label}
-              <span className={`
-                ml-2 px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center gap-1
-                ${activeTab === tab.key
-                  ? 'bg-[#43a047] text-white'
-                  : 'bg-muted text-muted-foreground'
-                }
-              `}>
-                {/* Show spinner for completed tab while loading */}
-                {tab.key === 'completed' && loadingSubmissionStatus ? (
-                  <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  tab.count
-                )}
+              <span className="flex items-center gap-2">
+                {tab.label}
+                <span className={`
+                  px-2 py-0.5 text-xs font-semibold inline-flex items-center justify-center min-w-[24px]
+                  ${activeTab === tab.key
+                    ? 'bg-white/20 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                  }
+                `}>
+                  {/* Show spinner for completed tab while loading */}
+                  {tab.key === 'completed' && loadingSubmissionStatus ? (
+                    <div className="w-3 h-3 border-2 border-current border-t-transparent animate-spin"></div>
+                  ) : (
+                    tab.count
+                  )}
+                </span>
               </span>
             </button>
           ))}
@@ -443,73 +445,75 @@ const AssignmentListPage: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search assignments..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          />
+      <div className="bg-white dark:bg-gray-900 p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="flex flex-wrap items-center justify-start gap-3">
+          {/* Search */}
+          <div className="relative w-full sm:w-auto sm:min-w-[280px]">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search assignments..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fd621b] focus:border-transparent transition-all"
+            />
+          </div>
+
+          {/* Subject Filter */}
+          <select
+            value={subjectFilter}
+            onChange={(e) => {
+              const newSubject = e.target.value;
+              setSubjectFilter(newSubject);
+
+              // Track filter applied
+              tracking.trackFilterApplied('subject', newSubject, {
+                pageSection: 'assignment_list',
+                metadata: {
+                  active_tab: activeTab,
+                  term_filter: termFilter,
+                }
+              });
+            }}
+            className="px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#fd621b] focus:border-transparent transition-all cursor-pointer"
+          >
+            <option value="all">All Subjects</option>
+            {Array.from(new Set(assignments.map(a => a.subject))).filter(Boolean).sort().map(subject => (
+              <option key={subject} value={subject}>{subject}</option>
+            ))}
+          </select>
+
+          {/* Term Filter */}
+          <select
+            value={termFilter}
+            onChange={(e) => {
+              const newTerm = e.target.value;
+              setTermFilter(newTerm);
+
+              // Track filter applied
+              tracking.trackFilterApplied('term', newTerm, {
+                pageSection: 'assignment_list',
+                metadata: {
+                  active_tab: activeTab,
+                  subject_filter: subjectFilter,
+                }
+              });
+            }}
+            className="px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#fd621b] focus:border-transparent transition-all cursor-pointer"
+          >
+            <option value="all">All Terms</option>
+            {Array.from(new Set(assignments.map(a => a.term))).filter(Boolean).map(term => (
+              <option key={term} value={term}>{term}</option>
+            ))}
+          </select>
+
+          <Button
+            onClick={fetchAssignments}
+            className="bg-[#fd621b] hover:bg-[#fc9100] text-white font-semibold px-5 py-2.5 shadow-md hover:shadow-lg transition-all"
+          >
+            Refresh
+          </Button>
         </div>
-
-        {/* Subject Filter */}
-        <select
-          value={subjectFilter}
-          onChange={(e) => {
-            const newSubject = e.target.value;
-            setSubjectFilter(newSubject);
-
-            // Track filter applied
-            tracking.trackFilterApplied('subject', newSubject, {
-              pageSection: 'assignment_list',
-              metadata: {
-                active_tab: activeTab,
-                term_filter: termFilter,
-              }
-            });
-          }}
-          className="px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <option value="all">All Subjects</option>
-          {Array.from(new Set(assignments.map(a => a.subject))).filter(Boolean).sort().map(subject => (
-            <option key={subject} value={subject}>{subject}</option>
-          ))}
-        </select>
-
-        {/* Term Filter */}
-        <select
-          value={termFilter}
-          onChange={(e) => {
-            const newTerm = e.target.value;
-            setTermFilter(newTerm);
-
-            // Track filter applied
-            tracking.trackFilterApplied('term', newTerm, {
-              pageSection: 'assignment_list',
-              metadata: {
-                active_tab: activeTab,
-                subject_filter: subjectFilter,
-              }
-            });
-          }}
-          className="px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <option value="all">All Terms</option>
-          {Array.from(new Set(assignments.map(a => a.term))).filter(Boolean).map(term => (
-            <option key={term} value={term}>{term}</option>
-          ))}
-        </select>
-
-        <Button
-          onClick={fetchAssignments}
-          className="bg-primary hover:bg-primary/90 text-white font-semibold shadow-md hover:shadow-lg transition-all"
-        >
-          Refresh
-        </Button>
       </div>
 
       {/* Assignment Cards Grid */}
@@ -561,7 +565,7 @@ const AssignmentListPage: React.FC = () => {
             return (
               <div
                 key={assignment.assignmentId}
-                className={`group relative rounded-xl overflow-hidden bg-white dark:bg-gray-800 border-2 ${currentGlow.border} transition-all duration-300 shadow-lg ${currentGlow.shadow}`}
+                className={`group relative flex flex-col rounded-xl overflow-hidden bg-white dark:bg-gray-800 border-2 ${currentGlow.border} transition-all duration-300 shadow-lg ${currentGlow.shadow} h-full`}
               >
                 {/* Dynamic glow overlay on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${currentGlow.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`} />
@@ -569,40 +573,37 @@ const AssignmentListPage: React.FC = () => {
                 {/* Header */}
                 <div className="relative bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-600">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <Badge className="bg-yellow-400 text-black text-xs px-2 py-0.5 font-semibold">
-                      {assignment.batch || 'SSB 2025'} 📎 📊
+                    <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 text-xs px-2 py-1 font-semibold border border-orange-200 dark:border-orange-700">
+                      {assignment.batch || 'SSB 2025'}
                     </Badge>
                     {assignment.groupAssignment === 'Yes' && (
-                      <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs px-2 py-0.5">
+                      <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs px-2 py-1 border border-purple-200 dark:border-purple-700">
                         <Users className="w-3 h-3 inline mr-1" />
                         Group
                       </Badge>
                     )}
                   </div>
-                  <h3 className="text-gray-900 dark:text-white font-bold text-lg leading-tight">{assignment.assignmentHeader}</h3>
-                  {assignment.subHeader && (
-                    <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">{assignment.subHeader}</p>
-                  )}
+                  <h3 className="text-gray-900 dark:text-white font-bold text-lg leading-tight line-clamp-2">{assignment.assignmentHeader}</h3>
                   {assignment.subject && (
-                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">{assignment.subject}</p>
+                    <p className="text-[#fd621b] dark:text-orange-400 text-sm mt-1 font-medium">{assignment.subject}</p>
                   )}
                 </div>
 
-                {/* Content area */}
-                <div className="relative p-4 bg-white dark:bg-gray-800">
-                  <div className="space-y-3">
+                {/* Content area - flex-grow to push button to bottom */}
+                <div className="relative p-4 bg-white dark:bg-gray-800 flex-grow flex flex-col">
+                  <div className="space-y-3 flex-grow">
                     {/* Start Date */}
                     <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-gray-600 dark:text-gray-400">Start:</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{formatDateTime(assignment.startDateTime || '')}</span>
+                      <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span className="text-gray-500 dark:text-gray-400">Start:</span>
+                      <span className="font-medium text-gray-900 dark:text-white text-xs">{formatDateTime(assignment.startDateTime || '')}</span>
                     </div>
 
                     {/* Due Date */}
                     <div className="flex items-center gap-2 text-sm">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-gray-600 dark:text-gray-400">Due:</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{formatDateTime(assignment.endDateTime || '')}</span>
+                      <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span className="text-gray-500 dark:text-gray-400">Due:</span>
+                      <span className="font-medium text-gray-900 dark:text-white text-xs">{formatDateTime(assignment.endDateTime || '')}</span>
                     </div>
 
                     {/* Time Remaining */}
@@ -612,9 +613,9 @@ const AssignmentListPage: React.FC = () => {
                       const hoursRemaining = diff / (1000 * 60 * 60);
 
                       // Determine color based on time remaining
-                      let bgColor = 'bg-green-50 dark:bg-green-900/20';
-                      let borderColor = 'border-green-200 dark:border-green-700';
-                      let textColor = 'text-green-600 dark:text-green-400';
+                      let bgColor = 'bg-orange-50 dark:bg-orange-900/20';
+                      let borderColor = 'border-orange-200 dark:border-orange-700';
+                      let textColor = 'text-orange-600 dark:text-orange-400';
 
                       if (hoursRemaining <= 6) {
                         bgColor = 'bg-red-50 dark:bg-red-900/20';
@@ -627,9 +628,9 @@ const AssignmentListPage: React.FC = () => {
                       }
 
                       return (
-                        <div className={`text-sm ${bgColor} p-3 rounded-lg border ${borderColor}`}>
-                          <span className="text-gray-600 dark:text-gray-400">Time remaining: </span>
-                          <span className={`font-bold ${textColor} ${hoursRemaining <= 6 ? 'animate-pulse' : ''}`}>
+                        <div className={`text-sm ${bgColor} p-2.5 rounded-lg border ${borderColor}`}>
+                          <span className="text-gray-600 dark:text-gray-400 text-xs">Time remaining: </span>
+                          <span className={`font-bold ${textColor} text-sm ${hoursRemaining <= 6 ? 'animate-pulse' : ''}`}>
                             {getTimeRemaining(assignment.endDateTime)}
                           </span>
                         </div>
@@ -637,52 +638,52 @@ const AssignmentListPage: React.FC = () => {
                     })()}
 
                     {/* Marks */}
-                    {assignment.totalMarks && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <GraduationCap className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-gray-600 dark:text-gray-400">Marks:</span>
-                        <span className="font-medium text-gray-900 dark:text-white">N/A</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2 text-sm">
+                      <GraduationCap className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span className="text-gray-500 dark:text-gray-400">Marks:</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{assignment.totalMarks || 'N/A'}</span>
+                    </div>
 
                     {/* Status Badge */}
-                    <div className="pt-2">
+                    <div>
                       <Badge className={`${
                         activeTab === 'active'
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-300 dark:border-green-700'
+                          ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-700'
                           : activeTab === 'expired'
-                          ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-700'
-                          : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
+                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700'
+                          : activeTab === 'completed'
+                          ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700'
+                          : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
                       }`}>
                         <span className="flex items-center gap-1">
-                          {activeTab === 'active' && <span>✓</span>}
+                          {activeTab === 'completed' && <span>✓</span>}
                           {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
                         </span>
                       </Badge>
                     </div>
+                  </div>
 
-                    {/* View Details Button */}
-                    <div className="pt-2">
-                      <Button
-                        onClick={() => {
-                          setSelectedAssignment(assignment);
-                          setIsModalOpen(true);
+                  {/* View Details Button - always at bottom */}
+                  <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                    <Button
+                      onClick={() => {
+                        setSelectedAssignment(assignment);
+                        setIsModalOpen(true);
 
-                          // Track assignment card click
-                          tracking.trackAssignmentCardClick(assignment, {
-                            pageSection: 'assignment_list',
-                            metadata: {
-                              tab: activeTab,
-                              is_group: assignment.groupAssignment === 'Yes',
-                              has_submitted: submissionStatus[assignment.assignmentId || ''],
-                            }
-                          });
-                        }}
-                        className="w-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-primary hover:bg-primary/90 text-primary-foreground"
-                      >
-                        {isExpired && activeTab === 'expired' ? 'View Assignment' : 'View Details'}
-                      </Button>
-                    </div>
+                        // Track assignment card click
+                        tracking.trackAssignmentCardClick(assignment, {
+                          pageSection: 'assignment_list',
+                          metadata: {
+                            tab: activeTab,
+                            is_group: assignment.groupAssignment === 'Yes',
+                            has_submitted: submissionStatus[assignment.assignmentId || ''],
+                          }
+                        });
+                      }}
+                      className="w-full bg-[#fd621b] hover:bg-[#fc9100] text-white font-semibold py-2.5 shadow-md hover:shadow-lg transition-all duration-300"
+                    >
+                      {activeTab === 'completed' ? 'View Submission' : isExpired ? 'View Assignment' : 'View Details'}
+                    </Button>
                   </div>
                 </div>
               </div>

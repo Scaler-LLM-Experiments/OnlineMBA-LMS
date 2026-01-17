@@ -1,7 +1,7 @@
 import { auth } from '../firebase/config';
 
 // Use the same backend URL as the main API (Forms API is merged into Code.js)
-const FORMS_API_BASE_URL = process.env.REACT_APP_BACKEND_API_URL || 'https://script.google.com/macros/s/AKfycbzqM7YP9ppMpyCSdwJZibtjtnXcGY7InCox01frgodDXHr7tHh-LgaXTuNngoy2rQnR/exec';
+const FORMS_API_BASE_URL = process.env.REACT_APP_BACKEND_API_URL || '';
 
 // Helper function to wait for auth initialization
 async function waitForAuth() {

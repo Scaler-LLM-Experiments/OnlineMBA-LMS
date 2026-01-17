@@ -41,8 +41,9 @@ export default function PasswordTab({
       setGenerationError('');
 
       // Call backend to generate and save passwords
+      const examBackendUrl = process.env.REACT_APP_EXAM_BACKEND_URL || '';
       const response = await fetch(
-        'https://script.google.com/macros/s/AKfycbxvRR0iaPBjKRhDt9wIOWEIYe0T-LQ7hcVB39RgBJmGPtJe1uTLNd0QMtBLmgjwH66q/exec',
+        examBackendUrl,
         {
           method: 'POST',
           mode: 'cors',

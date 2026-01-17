@@ -1,6 +1,6 @@
 import { Session, SessionFilters, Note, NoteInput, Student, ApiResponse, SSBCalendarEvent } from '../../types';
 
-const API_BASE_URL = process.env.REACT_APP_BACKEND_API_URL || 'https://script.google.com/macros/s/AKfycbzqM7YP9ppMpyCSdwJZibtjtnXcGY7InCox01frgodDXHr7tHh-LgaXTuNngoy2rQnR/exec';
+const API_BASE_URL = process.env.REACT_APP_BACKEND_API_URL || '';
 
 class ApiService {
   private async request<T>(url: string, options?: RequestInit): Promise<ApiResponse<T>> {

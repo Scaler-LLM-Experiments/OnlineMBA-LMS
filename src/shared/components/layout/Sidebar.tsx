@@ -97,7 +97,7 @@ const navigationItems: NavItem[] = [
   {
     id: 'assignments',
     label: 'Assignments',
-    path: '/assignments-platform',
+    path: '/assignments',
     icon: 'ClipboardList',
   },
   {

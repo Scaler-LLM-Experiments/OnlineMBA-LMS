@@ -13,17 +13,26 @@ import { useIsMounted } from '../../../core/hooks/useSafeEffect';
 // Import Firebase (lazy loaded to reduce initial bundle)
 let auth: import('firebase/auth').Auth | null = null;
 let googleProvider: import('firebase/auth').GoogleAuthProvider | null = null;
+let firebaseInitPromise: Promise<{ auth: import('firebase/auth').Auth; googleProvider: import('firebase/auth').GoogleAuthProvider }> | null = null;
 
 async function initializeFirebase() {
-  if (!auth) {
-    const { getAuth, GoogleAuthProvider } = await import('firebase/auth');
-    const app = (await import('../../../firebase/config')).default;
-    auth = getAuth(app);
-    googleProvider = new GoogleAuthProvider();
-    googleProvider.setCustomParameters({ prompt: 'select_account' });
+  if (!firebaseInitPromise) {
+    firebaseInitPromise = (async () => {
+      const { getAuth, GoogleAuthProvider } = await import('firebase/auth');
+      const app = (await import('../../../firebase/config')).default;
+      auth = getAuth(app);
+      googleProvider = new GoogleAuthProvider();
+      googleProvider.setCustomParameters({ prompt: 'select_account' });
+      return { auth: auth!, googleProvider: googleProvider! };
+    })();
   }
-  return { auth: auth!, googleProvider: googleProvider! };
+  return firebaseInitPromise;
 }
+
+// Pre-initialize Firebase when this module loads (doesn't block rendering)
+initializeFirebase().catch(() => {
+  // Silently fail - will retry on actual sign-in attempt
+});
 
 // Admin emails list - add emails that should have admin access
 const ADMIN_EMAILS = [
@@ -139,7 +148,23 @@ export function AuthProvider({ children }: AuthProviderProps): React.ReactElemen
       const { auth, googleProvider } = await initializeFirebase();
       const { signInWithPopup } = await import('firebase/auth');
 
-      const result = await signInWithPopup(auth, googleProvider);
+      let result;
+      try {
+        result = await signInWithPopup(auth, googleProvider);
+      } catch (popupError: unknown) {
+        // Handle popup-specific errors with user-friendly messages
+        const errorCode = (popupError as { code?: string })?.code;
+        if (errorCode === 'auth/popup-blocked') {
+          throw new Error('Pop-up was blocked by your browser. Please allow pop-ups for this site and try again.');
+        } else if (errorCode === 'auth/popup-closed-by-user') {
+          throw new Error('Sign-in was cancelled. Please try again.');
+        } else if (errorCode === 'auth/cancelled-popup-request') {
+          // User clicked multiple times, ignore this error
+          setState((prev) => ({ ...prev, isLoading: false }));
+          return;
+        }
+        throw popupError;
+      }
       const firebaseUser = result.user;
       console.log('[Auth] Firebase sign-in successful:', firebaseUser.email);
 
@@ -151,19 +176,40 @@ export function AuthProvider({ children }: AuthProviderProps): React.ReactElemen
       console.log('[Auth] Fetching user profile from backend...');
       let backendUser: Partial<User> = {};
 
-      try {
-        const response = await mainApi.action<User>('getStudentProfile', {
-          studentEmail: firebaseUser.email,
-        });
-        console.log('[Auth] Backend response:', response);
+      const response = await mainApi.action<User>('getStudentProfile', {
+        studentEmail: firebaseUser.email,
+      });
+      console.log('[Auth] Backend response:', response);
 
-        if (response.success && response.data) {
-          backendUser = response.data;
+      // Check if the user exists and is authorized
+      if (!response.success || !response.data) {
+        // User not found in the system - block login
+        console.error('[Auth] User not authorized. Success:', response.success, 'Data:', response.data, 'Error:', response.error);
+
+        // Sign out from Firebase since they're not authorized
+        try {
+          const { signOut: firebaseSignOut } = await import('firebase/auth');
+          await firebaseSignOut(auth);
+        } catch (signOutError) {
+          console.error('[Auth] Error signing out:', signOutError);
         }
-      } catch (backendError) {
-        console.warn('[Auth] Backend fetch failed, using Firebase data only:', backendError);
-        // Continue with Firebase data only - don't block login
+
+        // Set error state and throw
+        const errorMessage = response.error || 'Your email is not registered in the system. Please contact your administrator for access.';
+
+        if (isMounted()) {
+          setState({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: errorMessage,
+          });
+        }
+
+        throw new Error(errorMessage);
       }
+
+      backendUser = response.data;
 
       // Create user object (works even if backend fails)
       const displayName = firebaseUser.displayName || '';
@@ -201,6 +247,11 @@ export function AuthProvider({ children }: AuthProviderProps): React.ReactElemen
     } catch (error) {
       console.error('[Auth] Sign-in error:', error);
       const message = error instanceof Error ? error.message : 'Sign in failed';
+
+      // Clear any stored user data on login failure
+      localStorage.removeItem(STORAGE_KEYS.user);
+      localStorage.removeItem(STORAGE_KEYS.token);
+      cacheManager.clear();
 
       if (isMounted()) {
         setState({

@@ -8,7 +8,7 @@
 
 const CONFIG = {
   // Google Sheets Configuration
-  SHEET_ID: "1K5DrHxTVignwR4841sYyzziLDNq-rw2lrlDNJWk_Ddk",
+  SHEET_ID: "1b5MrRFysC3zf8ftsGJcjhUEjh5P3Q20fYAconTBm824",
 
   SHEETS: {
     CREATE_ZOOM: "Create Zoom + Google Calendar",
@@ -30,7 +30,7 @@ const CONFIG = {
 
   // Google Drive Configuration
   DRIVE: {
-    MAIN_FOLDER_ID: "1fm5W7aHG8ad0GNCyluUwBLtkRMioEkQG",
+    MAIN_FOLDER_ID: "18u-3233E10NZRB7PhMiWYAbNkzCLlBRD",
     MAIN_FOLDER_NAME: "SSB Zoom Recordings"
   },
 

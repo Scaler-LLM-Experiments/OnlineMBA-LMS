@@ -4,7 +4,7 @@
 // LAST PUSHED: 2025-12-05 - Resources Management fully integrated with Term sheet dropdowns
 
 // Configuration constants - UPDATE THESE WITH YOUR ACTUAL VALUES
-const SHEET_ID = "";
+const SHEET_ID = "1b5MrRFysC3zf8ftsGJcjhUEjh5P3Q20fYAconTBm824";
 const MAIN_SHEET = "ALLINONE";
 const EVENTS_ANNOUNCEMENTS_SHEET = "Events & Announcements Management";
 const STUDENT_LOGIN_SHEET = "Student Login";
@@ -43,17 +43,17 @@ function formatTimestampForSheets() {
 }
 
 // Google Drive configuration for profile pictures
-const MAIN_DRIVE_FOLDER_ID = "";
+const MAIN_DRIVE_FOLDER_ID = "18u-3233E10NZRB7PhMiWYAbNkzCLlBRD";
 const MAIN_DRIVE_FOLDER_NAME = "SSB ALL IN ONE CREATOR";
 
 // Notes Drive folder configuration
-const NOTES_DRIVE_FOLDER_ID = "";
+const NOTES_DRIVE_FOLDER_ID = "18u-3233E10NZRB7PhMiWYAbNkzCLlBRD";
 
 // Resources Drive folder configuration
-const RESOURCES_DRIVE_FOLDER_ID = "";
+const RESOURCES_DRIVE_FOLDER_ID = "18u-3233E10NZRB7PhMiWYAbNkzCLlBRD";
 
 // Placement Resume Drive folder configuration
-const PLACEMENT_RESUME_FOLDER_ID = "";
+const PLACEMENT_RESUME_FOLDER_ID = "18u-3233E10NZRB7PhMiWYAbNkzCLlBRD";
 
 // Job Portal configuration
 const JOB_PORTAL_SHEET_ID = "";
@@ -838,10 +838,10 @@ function handleRequest(e) {
 }
 
 /**
- * Validate student email domain
+ * Validate student email - allows any valid email format
  */
 function isValidStudentEmail(email) {
-  return email && (email.endsWith('@ssb.scaler.com') || email.endsWith('@scaler.com'));
+  return email && typeof email === 'string' && email.includes('@') && email.includes('.');
 }
 
 /**
@@ -8597,7 +8597,7 @@ function togglePinNote(noteId) {
 // ==================== CONFIGURATION ====================
 
 const FORMS_API_CONFIG = {
-  SHEET_ID: "1K5DrHxTVignwR4841sYyzziLDNq-rw2lrlDNJWk_Ddk",
+  SHEET_ID: "1b5MrRFysC3zf8ftsGJcjhUEjh5P3Q20fYAconTBm824",
 
   SHEETS: {
     FORMS: "Forms",
@@ -8608,7 +8608,7 @@ const FORMS_API_CONFIG = {
     STUDENT_DATA: "Student Data"
   },
 
-  MAIN_DRIVE_FOLDER_ID: "1fm5W7aHG8ad0GNCyluUwBLtkRMioEkQG",
+  MAIN_DRIVE_FOLDER_ID: "18u-3233E10NZRB7PhMiWYAbNkzCLlBRD",
   TIMEZONE: "Asia/Kolkata"
 };
 
@@ -13064,13 +13064,13 @@ function uploadJobFile(jobId, fileData, fileName, mimeType, fileType) {
 /**
  * Upload a resource file to Google Drive
  * Folder structure: Batch > Resources > Term > Domain > Subject
- * Parent folder ID: 1fm5W7aHG8ad0GNCyluUwBLtkRMioEkQG
+ * Parent folder ID: 18u-3233E10NZRB7PhMiWYAbNkzCLlBRD
  */
 function uploadResourceFile(fileData, fileName, mimeType, batch, term, domain, subject) {
   try {
     Logger.log('📤 uploadResourceFile: Starting upload for ' + fileName);
     
-    const PARENT_FOLDER_ID = '1fm5W7aHG8ad0GNCyluUwBLtkRMioEkQG';
+    const PARENT_FOLDER_ID = '18u-3233E10NZRB7PhMiWYAbNkzCLlBRD';
     
     // Create folder structure: Batch > Resources > Term > Domain > Subject
     let currentFolderId = PARENT_FOLDER_ID;
@@ -13143,7 +13143,7 @@ function startResumableUpload(fileName, mimeType, fileSize, batch, term, domain,
   try {
     Logger.log('📤 startResumableUpload: ' + fileName + ' (' + fileSize + ' bytes)');
     
-    const PARENT_FOLDER_ID = '1fm5W7aHG8ad0GNCyluUwBLtkRMioEkQG';
+    const PARENT_FOLDER_ID = '18u-3233E10NZRB7PhMiWYAbNkzCLlBRD';
     
     // Create folder structure
     let currentFolderId = PARENT_FOLDER_ID;

@@ -13,12 +13,12 @@
 // ==================== CONFIGURATION ====================
 
 const RESOURCES_CONFIG = {
-  SHEET_ID: "1K5DrHxTVignwR4841sYyzziLDNq-rw2lrlDNJWk_Ddk",
+  SHEET_ID: "1b5MrRFysC3zf8ftsGJcjhUEjh5P3Q20fYAconTBm824",
   SHEET_NAME: "Resources Material",
   TERM_SHEET: "Term", // Changed from "Zoom Recordings" to "Term"
 
   // Main Drive folder
-  MAIN_DRIVE_FOLDER_ID: "1fm5W7aHG8ad0GNCyluUwBLtkRMioEkQG",
+  MAIN_DRIVE_FOLDER_ID: "18u-3233E10NZRB7PhMiWYAbNkzCLlBRD",
 
   TIMEZONE: "Asia/Kolkata",
 

@@ -11,7 +11,7 @@
  * 5. Authorize when prompted
  * 6. All sheets will be created automatically!
  *
- * SHEETS CREATED (17 total):
+ * SHEETS CREATED (18 total) - Matches your Google Sheet structure:
  * 1. Student Login - Authentication/login tracking
  * 2. Student Data - User accounts with admin flag
  * 3. Student Profile - Extended profile info
@@ -23,12 +23,13 @@
  * 9. Events & Announcements Management - Events and announcements
  * 10. Policy & Documents Management - Policies
  * 11. Notes - Student notes
- * 12. SSB Calendar - Calendar events
+ * 12. Info.ssb Calendar - Calendar events (NOT "SSB Calendar")
  * 13. Acknowledgement Data - Policy acknowledgements
  * 14. Students Corner - Activity - Community posts
  * 15. Students Corner - Engagement - Likes/comments
  * 16. Forms - Dynamic forms
  * 17. Form Responses - Form submissions
+ * 18. Create Zoom + Google Calendar - Zoom session creation
  */
 
 function createAllSheets() {
@@ -60,6 +61,7 @@ function createAllSheets() {
   createStudentsCornerEngagement(ss);  // 15. Likes/comments
   createForms(ss);               // 16. Dynamic forms
   createFormResponses(ss);       // 17. Form submissions
+  createZoomGoogleCalendar(ss);  // 18. Zoom session creation
 
   // Delete Sheet1 if it still exists and we have other sheets
   try {
@@ -69,7 +71,7 @@ function createAllSheets() {
     }
   } catch (e) {}
 
-  SpreadsheetApp.getUi().alert('All 17 sheets created successfully! ✓\n\nIMPORTANT: Your admin email (mohit000pareek@gmail.com) has been added.');
+  SpreadsheetApp.getUi().alert('All 18 sheets created successfully! ✓\n\nIMPORTANT: Replace YOUR_ADMIN_EMAIL@example.com with your actual admin email in the sheets.');
 }
 
 function getOrCreateSheet(ss, name) {
@@ -94,7 +96,7 @@ function createStudentLogin(ss) {
   // Columns: Email (A/0) | Full Name (B/1) | Roll No (C/2) | Batch (D/3) | Role (E/4) | Login Count (F) | Last Login (G)
   const headers = ['Email', 'Full Name', 'Roll No', 'Batch', 'Role', 'Login Count', 'Last Login'];
   const data = [
-    ['mohit000pareek@gmail.com', 'Mohit Pareek', 'ADMIN001', 'MBA-2024', 'Admin', '1', new Date().toISOString()]
+    ['YOUR_ADMIN_EMAIL@example.com', 'Mohit Pareek', 'ADMIN001', 'MBA-2024', 'Admin', '1', new Date().toISOString()]
   ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#4285f4').setFontColor('white');
@@ -115,7 +117,7 @@ function createStudentData(ss) {
   // isAdmin column determines admin access
   const headers = ['Email', 'Name', 'Roll No', 'Batch', 'Phone', 'Status', 'isAdmin'];
   const data = [
-    ['mohit000pareek@gmail.com', 'Mohit Pareek', 'ADMIN001', 'MBA-2024', '9999999999', 'Active', 'Yes']
+    ['YOUR_ADMIN_EMAIL@example.com', 'Mohit Pareek', 'ADMIN001', 'MBA-2024', '9999999999', 'Active', 'Yes']
   ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#34a853').setFontColor('white');
@@ -135,7 +137,7 @@ function createStudentProfile(ss) {
 
   const headers = ['Email', 'Full Name', 'Roll No', 'Batch', 'Phone', 'LinkedIn', 'GitHub', 'Bio', 'Profile Picture', 'Created At'];
   const data = [
-    ['mohit000pareek@gmail.com', 'Mohit Pareek', 'ADMIN001', 'MBA-2024', '9999999999', '', '', 'Admin User', '', new Date().toISOString()]
+    ['YOUR_ADMIN_EMAIL@example.com', 'Mohit Pareek', 'ADMIN001', 'MBA-2024', '9999999999', '', '', 'Admin User', '', new Date().toISOString()]
   ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#9c27b0').setFontColor('white');
@@ -155,7 +157,7 @@ function createAccess(ss) {
 
   const headers = ['Email', 'Role', 'Batch', 'Permissions', 'Created At'];
   const data = [
-    ['mohit000pareek@gmail.com', 'Admin', 'MBA-2024', 'All', new Date().toISOString()]
+    ['YOUR_ADMIN_EMAIL@example.com', 'Admin', 'MBA-2024', 'All', new Date().toISOString()]
   ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#ff5722').setFontColor('white');
@@ -256,9 +258,9 @@ function createResourcesMaterial(ss) {
   // Backend expects these exact column names with _RES suffix
   const headers = ['ID_RES', 'Publish_RES', 'Posted By_RES', 'Created at_RES', 'Title_RES', 'Description_RES', 'Term_RES', 'Domain_RES', 'Subject_RES', 'Level_RES', 'Resource Type_RES', 'File 1 Name_RES', 'File 1 URL_RES', 'Status_RES'];
   const data = [
-    ['RES001', 'Yes', 'mohit000pareek@gmail.com', '2025-01-15 10:00:00', 'Accounting Fundamentals', 'Introduction to basic accounting principles', 'Term-1', 'Finance', 'Financial Accounting', 'Subject', 'Lecture Slides', 'Accounting-Intro.pdf', 'https://drive.google.com/file/d/sample', 'Published'],
-    ['RES002', 'Yes', 'mohit000pareek@gmail.com', '2025-01-15 10:30:00', 'Marketing Case Studies', 'Collection of real-world marketing cases', 'Term-1', 'Marketing', 'Marketing Management', 'Subject', 'Case Study', 'Marketing-Cases.pdf', 'https://drive.google.com/file/d/sample2', 'Published'],
-    ['RES003', 'Yes', 'mohit000pareek@gmail.com', '2025-01-16 09:00:00', 'Excel for Finance', 'Learn Excel formulas for financial analysis', 'Term-1', 'Finance', 'Financial Accounting', 'Subject', 'Video Tutorial', 'Excel-Tutorial.mp4', 'https://drive.google.com/file/d/sample3', 'Published']
+    ['RES001', 'Yes', 'YOUR_ADMIN_EMAIL@example.com', '2025-01-15 10:00:00', 'Accounting Fundamentals', 'Introduction to basic accounting principles', 'Term-1', 'Finance', 'Financial Accounting', 'Subject', 'Lecture Slides', 'Accounting-Intro.pdf', 'https://drive.google.com/file/d/sample', 'Published'],
+    ['RES002', 'Yes', 'YOUR_ADMIN_EMAIL@example.com', '2025-01-15 10:30:00', 'Marketing Case Studies', 'Collection of real-world marketing cases', 'Term-1', 'Marketing', 'Marketing Management', 'Subject', 'Case Study', 'Marketing-Cases.pdf', 'https://drive.google.com/file/d/sample2', 'Published'],
+    ['RES003', 'Yes', 'YOUR_ADMIN_EMAIL@example.com', '2025-01-16 09:00:00', 'Excel for Finance', 'Learn Excel formulas for financial analysis', 'Term-1', 'Finance', 'Financial Accounting', 'Subject', 'Video Tutorial', 'Excel-Tutorial.mp4', 'https://drive.google.com/file/d/sample3', 'Published']
   ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#9c27b0').setFontColor('white');
@@ -328,19 +330,19 @@ function createNotes(ss) {
 }
 
 // ============================================================
-// 12. SSB CALENDAR - Calendar events
+// 12. INFO.SSB CALENDAR - Calendar events
+// Backend uses: spreadsheet.getSheetByName('Info.ssb Calendar')
 // ============================================================
 function createSSBCalendar(ss) {
-  const sheet = getOrCreateSheet(ss, 'SSB Calendar');
+  const sheet = getOrCreateSheet(ss, 'Info.ssb Calendar');
   sheet.clear();
 
-  const headers = ['Event ID', 'Batch', 'Event Type', 'Event Name', 'Description', 'Start Date', 'Start Time', 'End Date', 'End Time', 'Location', 'Link', 'Student Level Show', 'Attendees'];
+  // Headers from backend getCalendarEvents() column mapping
+  const headers = ['Batch', 'Publish', 'Event Type', 'Student Level Show', 'Event Name', 'Start Date', 'Start Time', 'End Date', 'End Time', 'Link', 'Description', 'Attendees', 'Event ID', 'Updated?', 'Updated at Timestamp', 'Location'];
   const data = [
-    ['CAL001', 'MBA-2024', 'Session', 'Finance Class - Week 1', 'Weekly finance lecture', '20-Jan-2025', '10:00 AM', '20-Jan-2025', '11:00 AM', 'Online', 'https://zoom.us/j/123', 'No', ''],
-    ['CAL002', 'MBA-2024', 'Session', 'Marketing Class - Week 1', 'Weekly marketing lecture', '21-Jan-2025', '02:00 PM', '21-Jan-2025', '03:30 PM', 'Online', 'https://zoom.us/j/124', 'No', ''],
-    ['CAL003', 'MBA-2024', 'Assessment', 'Mid-Term Quiz 1', 'Finance mid-term assessment', '25-Jan-2025', '10:00 AM', '25-Jan-2025', '11:00 AM', 'Online', 'https://exam.portal/quiz1', 'No', ''],
-    ['CAL004', 'MBA-2024', 'Workshop', 'Resume Building', 'Career development workshop', '28-Jan-2025', '02:00 PM', '28-Jan-2025', '05:00 PM', 'Campus Room 101', '', 'No', ''],
-    ['CAL005', 'MBA-2024', 'Others', 'Assignment 1 Deadline', 'Submit Assignment 1', '30-Jan-2025', '11:59 PM', '30-Jan-2025', '11:59 PM', 'Online', '', 'No', '']
+    ['MBA-2024', 'Yes', 'Session', 'No', 'Finance Class - Week 1', '20-Jan-2025', '10:00 AM', '20-Jan-2025', '11:00 AM', 'https://zoom.us/j/123', 'Weekly finance lecture', '', 'CAL001', 'No', '', 'Online'],
+    ['MBA-2024', 'Yes', 'Session', 'No', 'Marketing Class - Week 1', '21-Jan-2025', '02:00 PM', '21-Jan-2025', '03:30 PM', 'https://zoom.us/j/124', 'Weekly marketing lecture', '', 'CAL002', 'No', '', 'Online'],
+    ['MBA-2024', 'Yes', 'Assessment', 'No', 'Mid-Term Quiz 1', '25-Jan-2025', '10:00 AM', '25-Jan-2025', '11:00 AM', 'https://exam.portal/quiz1', 'Finance mid-term assessment', '', 'CAL003', 'No', '', 'Online']
   ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#673ab7').setFontColor('white');
@@ -400,13 +402,23 @@ function createStudentsCornerEngagement(ss) {
 
 // ============================================================
 // 16. FORMS - Dynamic forms
-// Note: This is for basic forms. Forms API has its own sheet configuration
+// Headers from your Google Sheet Forms tab
 // ============================================================
 function createForms(ss) {
   const sheet = getOrCreateSheet(ss, 'Forms');
   sheet.clear();
 
-  const headers = ['Form ID', 'Title', 'Description', 'Type', 'Batch', 'Is Required', 'Deadline', 'Status', 'Created At', 'Created By'];
+  // Exact headers from your sheet
+  const headers = [
+    'Form_ID', 'Batch', 'Term', 'Domain', 'Subject', 'Form_Name', 'Form_Description',
+    'Form_Type', 'Created_By', 'Created_At', 'Start_DateTime', 'End_DateTime',
+    'Uploaded_File', 'Drive_Link', 'Attachment_Required', 'Response_Sheet_Link',
+    'Is_Active', 'Show_At_Start_Until_Filled', 'Show_In_Tab', 'Visible_To',
+    'Max_Responses_Per_User', 'Show_Results_To_Respondents', 'Thank_You_Message',
+    'Redirect_URL', 'Allow_Edit_Response', 'Allow_Student_View_Response',
+    'Require_Login', 'Collect_Email', 'Total_Responses', 'Last_Updated_At',
+    'Last_Updated_By', 'Status', 'Notes'
+  ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#3f51b5').setFontColor('white');
   sheet.setFrozenRows(1);
@@ -423,6 +435,27 @@ function createFormResponses(ss) {
   const headers = ['Response ID', 'Form ID', 'Student Email', 'Responses', 'Submitted At'];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#009688').setFontColor('white');
+  sheet.setFrozenRows(1);
+  sheet.autoResizeColumns(1, headers.length);
+}
+
+// ============================================================
+// 18. CREATE ZOOM + GOOGLE CALENDAR - Zoom session creation
+// Backend uses: spreadsheet.getSheetByName('Create Zoom + Google Calendar')
+// ============================================================
+function createZoomGoogleCalendar(ss) {
+  const sheet = getOrCreateSheet(ss, 'Create Zoom + Google Calendar');
+  sheet.clear();
+
+  // Headers from backend Backend Zoom.js CREATE_COLUMNS
+  const headers = [
+    'Batch', 'Term', 'Domain', 'Subject', 'Session Name', 'Description',
+    'Date', 'Start Time', 'Duration (mins)', 'Meeting ID', 'Meeting Password',
+    'Zoom Join URL', 'Zoom Start URL', 'Calendar Event ID', 'Calendar Event Link',
+    'Status', 'Created At', 'Created By'
+  ];
+
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#1a73e8').setFontColor('white');
   sheet.setFrozenRows(1);
   sheet.autoResizeColumns(1, headers.length);
 }

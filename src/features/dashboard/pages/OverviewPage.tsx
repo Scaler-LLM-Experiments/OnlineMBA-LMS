@@ -607,7 +607,7 @@ export const OverviewPage = memo(function OverviewPage({ user }: OverviewPagePro
         navigate('/announcements');
         break;
       case 'ASSIGNMENTS & TASKS':
-        navigate('/assignments-platform');
+        navigate('/assignments');
         break;
       case 'STUDENTS CORNER':
         navigate('/students-corner');
@@ -977,7 +977,7 @@ export const OverviewPage = memo(function OverviewPage({ user }: OverviewPagePro
           <div className="space-y-3">
             <button
               className="w-full flex items-center p-3 text-left border border-border rounded-lg hover:bg-accent transition-colors"
-              onClick={() => navigate('/assignments-platform')}
+              onClick={() => navigate('/assignments')}
             >
               <ClipboardList className="mr-3 h-4 w-4 text-blue-600" />
               <div>
@@ -1026,9 +1026,9 @@ export const OverviewPage = memo(function OverviewPage({ user }: OverviewPagePro
           </h2>
           <div className="h-60 overflow-y-auto space-y-4">
             {liveAndUpcomingItems.length > 0 ? (
-              liveAndUpcomingItems.map((item) => (
+              liveAndUpcomingItems.map((item, index) => (
                 <div
-                  key={item.id}
+                  key={`${item.id}-${index}`}
                   className={`flex items-center space-x-4 p-3 border border-border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors ${
                     item.status === 'Active'
                       ? 'bg-green-500/10 dark:bg-green-500/20 border-green-500/50'

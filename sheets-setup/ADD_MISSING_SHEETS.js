@@ -49,7 +49,7 @@ function createStudentLogin(ss) {
   // Columns: Email (A/0) | Full Name (B/1) | Roll No (C/2) | Batch (D/3) | Role (E/4) | Login Count (F) | Last Login (G)
   const headers = ['Email', 'Full Name', 'Roll No', 'Batch', 'Role', 'Login Count', 'Last Login'];
   const data = [
-    ['mohit000pareek@gmail.com', 'Mohit Pareek', 'ADMIN001', 'MBA-2024', 'Admin', '1', new Date().toISOString()]
+    ['YOUR_ADMIN_EMAIL@example.com', 'Mohit Pareek', 'ADMIN001', 'MBA-2024', 'Admin', '1', new Date().toISOString()]
   ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#4285f4').setFontColor('white');
@@ -64,7 +64,7 @@ function createStudentProfile(ss) {
 
   const headers = ['Email', 'Full Name', 'Roll No', 'Batch', 'Phone', 'LinkedIn', 'GitHub', 'Bio', 'Profile Picture', 'Created At'];
   const data = [
-    ['mohit000pareek@gmail.com', 'Mohit Pareek', 'ADMIN001', 'MBA-2024', '9999999999', '', '', 'Admin User', '', new Date().toISOString()]
+    ['YOUR_ADMIN_EMAIL@example.com', 'Mohit Pareek', 'ADMIN001', 'MBA-2024', '9999999999', '', '', 'Admin User', '', new Date().toISOString()]
   ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#9c27b0').setFontColor('white');
@@ -79,7 +79,7 @@ function createAccess(ss) {
 
   const headers = ['Email', 'Role', 'Batch', 'Permissions', 'Created At'];
   const data = [
-    ['mohit000pareek@gmail.com', 'Admin', 'MBA-2024', 'All', new Date().toISOString()]
+    ['YOUR_ADMIN_EMAIL@example.com', 'Admin', 'MBA-2024', 'All', new Date().toISOString()]
   ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#ff5722').setFontColor('white');

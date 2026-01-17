@@ -42,7 +42,7 @@ const Header: React.FC<HeaderProps> = ({ sidebarOpen, setSidebarOpen }) => {
   const showMenuOnDesktop = location.pathname === '/sessions' || location.pathname === '/my-notes';
 
   // Check if we're on assignment pages
-  const isAssignmentPage = location.pathname === '/assignments-platform' || location.pathname.startsWith('/assignments-platform/');
+  const isAssignmentPage = location.pathname === '/assignments' || location.pathname === '/assignments-platform' || location.pathname.startsWith('/assignments-platform/');
 
   useEffect(() => {
     // Apply dark theme by default on first load

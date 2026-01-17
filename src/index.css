@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -15,9 +15,14 @@
       transform: translateY(0);
     }
   }
-  
+
   .animate-fadeIn {
     animation: fadeIn 0.5s ease-out;
+  }
+
+  /* Global border-radius reset to 0 (sharp corners) */
+  *, *::before, *::after {
+    border-radius: 0 !important;
   }
 
   :root {
@@ -64,8 +69,8 @@
     --ring: 142 76% 36%; /* SSB Green */
   }
 
-  body { 
-    font-family: 'Inter', sans-serif; 
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
     overflow-x: hidden;
   }
 }

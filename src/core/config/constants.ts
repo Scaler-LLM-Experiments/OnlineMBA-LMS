@@ -76,7 +76,7 @@ export const ROUTES = {
 
   // Assessments
   exams: '/exams',
-  assignments: '/assignments-platform',
+  assignments: '/assignments',
   forms: '/forms',
 
   // Information

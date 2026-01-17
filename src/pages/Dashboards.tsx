@@ -160,7 +160,7 @@ const Dashboards: React.FC = () => {
 
     // Special handling for assignment dashboard - open directly in new tab
     if (dashboard.type === 'assignment') {
-      window.open('/assignments-platform', '_blank');
+      window.open('/assignments', '_blank');
       return;
     }
 

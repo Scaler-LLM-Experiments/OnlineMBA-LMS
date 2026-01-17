@@ -34,17 +34,12 @@ export const AssignmentDashboard: React.FC = () => {
   // Refresh notification hook
   const { notification, loading: refreshLoading, acknowledgeRefresh, dismissBanner } = useRefreshNotification();
 
-  // Initialize dark mode from localStorage or system preference
+  // Initialize dark mode from localStorage - default to LIGHT mode (white)
   useEffect(() => {
     const savedMode = localStorage.getItem('assignmentDarkMode');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-    let shouldBeDark = false;
-    if (savedMode !== null) {
-      shouldBeDark = savedMode === 'true';
-    } else {
-      shouldBeDark = systemPrefersDark;
-    }
+    // Only enable dark mode if explicitly saved as 'true', otherwise default to light
+    const shouldBeDark = savedMode === 'true';
 
     setDarkMode(shouldBeDark);
     if (shouldBeDark) {

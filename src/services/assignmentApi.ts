@@ -3,7 +3,7 @@
  * Handles all communication with the Assignment Backend
  */
 
-const ASSIGNMENT_API_URL = process.env.REACT_APP_ASSIGNMENT_BACKEND_URL || 'https://script.google.com/macros/s/AKfycbzS_d38N51M-2d1ek_2Pk7dYaj0C0JTAPCvST8AVmY1Hz3DcfBZv8ffPO6arLByqbJBOQ/exec';
+const ASSIGNMENT_API_URL = process.env.REACT_APP_ASSIGNMENT_BACKEND_URL || '';
 
 export interface AssignmentQuestion {
   question: string;

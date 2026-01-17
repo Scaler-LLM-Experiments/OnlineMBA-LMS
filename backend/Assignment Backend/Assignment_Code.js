@@ -11,7 +11,7 @@
 // ==================== CONFIGURATION ====================
 
 const ASSIGNMENT_CONFIG = {
-  SHEET_ID: "1hZe_BA6xZUgM1KDWaZudghxFqq--7-dSVTSl4zTDwxg",
+  SHEET_ID: "1QnG3DL_X_9erdUXdS3dm8PEsyyDoYf4SZCobWjXCNy8",
   ASSIGNMENT_SHEET: "Assignment Ceator",
   // SUBJECT_VISIBLE_SHEET: "Subject Visible Data", // DEPRECATED: Now using "Group Members" sheet
   SUBJECT_TERM_SHEET: "Subject Term",
@@ -20,7 +20,7 @@ const ASSIGNMENT_CONFIG = {
   TIMEZONE: "Asia/Kolkata",
 
   // Drive folder structure root
-  DRIVE_ROOT_ID: "16jTUfQMp-duWS_dgyRaZhke8mwVPr0TU",
+  DRIVE_ROOT_ID: "1iZZWCLnEyMse-NNby28nKAVKtSLC8Zp-",
 
   // Assignment ID Format: YYYY-SU-YYYYMMDD-XXX
   ID_PREFIX: "SU",

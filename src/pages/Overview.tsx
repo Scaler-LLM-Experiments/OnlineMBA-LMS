@@ -925,7 +925,7 @@ const Overview: React.FC = () => {
         navigate('/announcements');
         break;
       case 'ASSIGNMENTS & TASKS':
-        navigate('/assignments-platform');
+        navigate('/assignments');
         break;
       case 'STUDENTS CORNER':
         navigate('/students-corner');
@@ -981,7 +981,7 @@ const Overview: React.FC = () => {
           <CardContent className="space-y-3">
             <button
               className="w-full flex items-center p-3 text-left border rounded-lg hover:bg-accent transition-colors"
-              onClick={() => navigate('/assignments-platform')}
+              onClick={() => navigate('/assignments')}
             >
               <ClipboardList className="mr-3 h-4 w-4 text-blue-600" />
               <div>

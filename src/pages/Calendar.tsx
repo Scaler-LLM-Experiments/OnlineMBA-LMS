@@ -482,7 +482,7 @@ const Calendar: React.FC = () => {
         toast.success('Navigating to class/session schedule section');
         break;
       case 'ASSIGNMENTS & TASKS':
-        navigate('/assignments-platform');
+        navigate('/assignments');
         toast.success('Navigating to assignments and tasks section');
         break;
       case 'Events & Announcements':

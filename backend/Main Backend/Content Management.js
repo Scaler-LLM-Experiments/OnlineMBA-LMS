@@ -13,10 +13,10 @@
 // ==================== CONFIGURATION ====================
 
 const CONTENT_CONFIG = {
-  SHEET_ID: "1K5DrHxTVignwR4841sYyzziLDNq-rw2lrlDNJWk_Ddk",
+  SHEET_ID: "1b5MrRFysC3zf8ftsGJcjhUEjh5P3Q20fYAconTBm824",
 
   // Main Drive folder - renamed from "SSB Zoom Recordings" to "Scaler School of Business"
-  MAIN_DRIVE_FOLDER_ID: "1fm5W7aHG8ad0GNCyluUwBLtkRMioEkQG",
+  MAIN_DRIVE_FOLDER_ID: "18u-3233E10NZRB7PhMiWYAbNkzCLlBRD",
   MAIN_DRIVE_FOLDER_NAME: "Scaler School of Business",
 
   // Sheet names for content management
