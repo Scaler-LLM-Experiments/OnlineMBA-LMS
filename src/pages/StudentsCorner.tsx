@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { auth } from '../firebase/config';
 import { apiService } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Skeleton } from '../components/ui/skeleton';
-import { 
+import {
   Users,
   Trophy,
   TrendingUp,
@@ -18,8 +19,8 @@ import {
   Calendar,
   BookOpen
 } from 'lucide-react';
-import { 
-  StudentsCornerDashboardData, 
+import {
+  StudentsCornerDashboardData,
   StudentsCornerActivity,
   ActivityType
 } from '../types/studentsCorner';
@@ -30,16 +31,34 @@ import Leaderboard from '../components/students-corner/Leaderboard';
 import toast from 'react-hot-toast';
 import { useActivityTracker } from '../hooks/useActivityTracker';
 
+type TabType = 'all' | ActivityType;
+
 const StudentsCorner: React.FC = () => {
   const user = auth.currentUser;
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<StudentsCornerDashboardData | null>(null);
-  const [selectedTab, setSelectedTab] = useState<'all' | ActivityType>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<StudentsCornerActivity | null>(null);
   const { trackPageView } = useActivityTracker();
+
+  // Get tab from URL for browser back support
+  const selectedTab = (searchParams.get('tab') as TabType) || 'all';
+
+  // URL-based tab setter for browser back support
+  const setSelectedTab = useCallback((tab: TabType) => {
+    const params = new URLSearchParams(searchParams);
+    if (tab === 'all') {
+      params.delete('tab');
+    } else {
+      params.set('tab', tab);
+    }
+    const queryString = params.toString();
+    navigate(queryString ? `/students-corner?${queryString}` : '/students-corner', { replace: false });
+  }, [navigate, searchParams]);
 
   // Track page view
   useEffect(() => {

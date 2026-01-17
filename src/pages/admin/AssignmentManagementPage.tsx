@@ -1,13 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { ClipboardList, ArrowLeft, Plus, List, RefreshCw, Activity } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AssignmentManagementCard } from '../../components/admin/AssignmentManagementCard';
 import { RefreshStudentsPlatformModal } from '../../components/admin/RefreshStudentsPlatformModal';
 
+type TabType = 'all' | 'create';
+
 export function AssignmentManagementPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'all' | 'create'>('all');
+  const [searchParams] = useSearchParams();
   const [isRefreshModalOpen, setIsRefreshModalOpen] = useState(false);
+
+  // Get tab from URL for browser back support
+  const activeTab = (searchParams.get('tab') as TabType) || 'all';
+
+  // URL-based tab setter for browser back support
+  const setActiveTab = useCallback((tab: TabType) => {
+    const params = new URLSearchParams(searchParams);
+    if (tab === 'all') {
+      params.delete('tab');
+    } else {
+      params.set('tab', tab);
+    }
+    const queryString = params.toString();
+    navigate(queryString ? `/admin/assignments?${queryString}` : '/admin/assignments', { replace: false });
+  }, [navigate, searchParams]);
 
   const tabs = [
     { id: 'all', label: 'View All', icon: List },

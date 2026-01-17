@@ -137,11 +137,14 @@ export interface AverageRatingsData {
 }
 
 class AssignmentApiService {
+  // Timeout for API requests (90 seconds to allow for large file uploads)
+  private readonly REQUEST_TIMEOUT = 90000;
+
   private async makeRequest<T>(
     action: string,
     params: any,
     studentEmail: string
-  ): Promise<{ success: boolean; data?: T; error?: string }> {
+  ): Promise<{ success: boolean; data?: T; error?: string; networkError?: boolean }> {
     try {
       // Prepare form data like the working Placement backend
       const formData = new URLSearchParams();
@@ -156,6 +159,10 @@ class AssignmentApiService {
         console.log('  📦 params (stringified):', JSON.stringify(params, null, 2));
       }
 
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
       const response = await fetch(ASSIGNMENT_API_URL, {
         method: 'POST',
         mode: 'cors',
@@ -164,7 +171,10 @@ class AssignmentApiService {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: formData.toString(),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -208,9 +218,19 @@ class AssignmentApiService {
       return result;
     } catch (error) {
       console.error(`❌ Error in ${action}:`, error);
+
+      // Check if this is a network error (Failed to fetch, timeout, etc.)
+      const isNetworkError = error instanceof Error && (
+        error.message === 'Failed to fetch' ||
+        error.name === 'AbortError' ||
+        error.message.includes('network') ||
+        error.message.includes('timeout')
+      );
+
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
+        networkError: isNetworkError,
       };
     }
   }

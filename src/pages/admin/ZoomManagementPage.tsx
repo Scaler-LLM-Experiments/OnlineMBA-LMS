@@ -1,14 +1,31 @@
-import React, { useState } from 'react';
+import React, { useCallback } from 'react';
 import { Video, ArrowLeft, BarChart, PlayCircle, Download, Calendar } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ZoomManagementCard } from '../../components/admin/ZoomManagementCard';
 import { ZoomCreateDataTable } from '../../components/admin/ZoomCreateDataTable';
 import { ZoomLiveDataTable } from '../../components/admin/ZoomLiveDataTable';
 import { ZoomRecordingDataTable } from '../../components/admin/ZoomRecordingDataTable';
 
+type TabType = 'overview' | 'create' | 'live' | 'recordings';
+
 export function ZoomManagementPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'create' | 'live' | 'recordings'>('overview');
+  const [searchParams] = useSearchParams();
+
+  // Get tab from URL for browser back support
+  const activeTab = (searchParams.get('tab') as TabType) || 'overview';
+
+  // URL-based tab setter for browser back support
+  const setActiveTab = useCallback((tab: TabType) => {
+    const params = new URLSearchParams(searchParams);
+    if (tab === 'overview') {
+      params.delete('tab');
+    } else {
+      params.set('tab', tab);
+    }
+    const queryString = params.toString();
+    navigate(queryString ? `/admin/zoom?${queryString}` : '/admin/zoom', { replace: false });
+  }, [navigate, searchParams]);
 
   const tabs = [
     { id: 'overview', label: 'Overview & Sync', icon: BarChart },

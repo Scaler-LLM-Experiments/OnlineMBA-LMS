@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -12,7 +13,9 @@ import {
   Download,
   ExternalLink,
   Users,
-  GraduationCap
+  GraduationCap,
+  CheckCircle,
+  X
 } from 'lucide-react';
 import { assignmentApiService, AssignmentData } from '../../services/assignmentApi';
 import { auth } from '../../firebase/config';
@@ -25,21 +28,56 @@ import { useAssignmentTracking } from '../../hooks/useAssignmentTracking';
 type TabType = 'active' | 'upcoming' | 'expired' | 'completed';
 
 const AssignmentListPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Get state from URL params for browser back support
+  const activeTab = (searchParams.get('tab') as TabType) || 'active';
+  const subjectFilter = searchParams.get('subject') || 'all';
+  const termFilter = searchParams.get('term') || 'all';
+
   const [assignments, setAssignments] = useState<AssignmentData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<TabType>('active');
-  const [subjectFilter, setSubjectFilter] = useState<string>('all');
-  const [termFilter, setTermFilter] = useState<string>('all');
   const [selectedAssignment, setSelectedAssignment] = useState<AssignmentData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<Record<string, boolean>>({});
   const [loadingSubmissionStatus, setLoadingSubmissionStatus] = useState(false);
   const [accessError, setAccessError] = useState<string | null>(null);
+  // Simple confirmation modal state
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationIsUpdate, setConfirmationIsUpdate] = useState(false);
   const user = auth.currentUser;
   const { student } = useAuth();
   const { trackPageView} = useActivityTracker();
   const tracking = useAssignmentTracking();
+
+  // URL-based state setters for browser back support
+  const setActiveTab = useCallback((tab: TabType) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('tab', tab);
+    navigate(`/assignments?${params.toString()}`, { replace: false });
+  }, [navigate, searchParams]);
+
+  const setSubjectFilter = useCallback((subject: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (subject === 'all') {
+      params.delete('subject');
+    } else {
+      params.set('subject', subject);
+    }
+    navigate(`/assignments?${params.toString()}`, { replace: true });
+  }, [navigate, searchParams]);
+
+  const setTermFilter = useCallback((term: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (term === 'all') {
+      params.delete('term');
+    } else {
+      params.set('term', term);
+    }
+    navigate(`/assignments?${params.toString()}`, { replace: true });
+  }, [navigate, searchParams]);
 
   // Track page view
   useEffect(() => {
@@ -431,12 +469,7 @@ const AssignmentListPage: React.FC = () => {
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                   }
                 `}>
-                  {/* Show spinner for completed tab while loading */}
-                  {tab.key === 'completed' && loadingSubmissionStatus ? (
-                    <div className="w-3 h-3 border-2 border-current border-t-transparent animate-spin"></div>
-                  ) : (
-                    tab.count
-                  )}
+                  {tab.count}
                 </span>
               </span>
             </button>
@@ -701,12 +734,135 @@ const AssignmentListPage: React.FC = () => {
             setIsModalOpen(false);
             setSelectedAssignment(null);
           }}
-          onSubmit={() => {
+          onSubmit={(isUpdate: boolean) => {
             // Refresh assignments to move to completed tab
             fetchAssignments();
+            // Show simple confirmation modal after details modal closes
+            setConfirmationIsUpdate(isUpdate);
+            setShowConfirmation(true);
           }}
           activeTab={activeTab}
         />
+      )}
+
+      {/* Simple Submission Confirmation Modal with Confetti */}
+      {showConfirmation && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowConfirmation(false)}
+          />
+
+          {/* Confetti particles */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {[...Array(50)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-3 h-3"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: '-20px',
+                  backgroundColor: ['#10B981', '#34D399', '#6EE7B7', '#FCD34D', '#F59E0B', '#fd621b', '#fc9100'][Math.floor(Math.random() * 7)],
+                  animation: `confettiFall ${2 + Math.random() * 2}s ease-out ${Math.random() * 0.5}s forwards`,
+                  transform: `rotate(${Math.random() * 360}deg)`,
+                  opacity: 0,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Modal */}
+          <div className="relative z-[101] bg-white dark:bg-gray-900 w-full max-w-md mx-4 shadow-2xl border border-gray-200 dark:border-gray-700">
+            {/* Close button */}
+            <button
+              onClick={() => setShowConfirmation(false)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Content */}
+            <div className="px-8 pt-12 pb-6 text-center">
+              {/* Simple checkmark icon */}
+              <div className="w-20 h-20 mx-auto mb-6">
+                <svg
+                  className="w-20 h-20"
+                  viewBox="0 0 100 100"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* Circle background */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="48"
+                    className="fill-green-500"
+                    style={{
+                      animation: 'scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+                      transformOrigin: 'center'
+                    }}
+                  />
+                  {/* Animated checkmark */}
+                  <path
+                    d="M28 52 L42 66 L72 36"
+                    stroke="white"
+                    strokeWidth="8"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      strokeDasharray: '80',
+                      strokeDashoffset: '80',
+                      animation: 'drawCheck 0.5s ease-out 0.3s forwards',
+                    }}
+                  />
+                </svg>
+              </div>
+
+              {/* Success text */}
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                {confirmationIsUpdate ? 'Updated Successfully!' : 'Submitted Successfully!'}
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                {confirmationIsUpdate
+                  ? 'Your assignment has been updated.'
+                  : 'Your assignment has been submitted.'}
+              </p>
+            </div>
+
+            {/* Done Button */}
+            <div className="px-8 pb-8">
+              <Button
+                onClick={() => setShowConfirmation(false)}
+                className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-4 text-lg transition-colors"
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+
+          {/* Inline keyframes for animations */}
+          <style>{`
+            @keyframes scaleIn {
+              from { transform: scale(0); }
+              to { transform: scale(1); }
+            }
+            @keyframes drawCheck {
+              to { stroke-dashoffset: 0; }
+            }
+            @keyframes confettiFall {
+              0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+              }
+              100% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(720deg);
+              }
+            }
+          `}</style>
+        </div>
       )}
     </div>
   );

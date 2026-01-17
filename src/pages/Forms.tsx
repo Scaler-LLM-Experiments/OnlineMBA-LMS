@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { auth } from '../firebase/config';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -46,18 +46,35 @@ interface UserResponse {
   isComplete: string;
 }
 
+type FilterType = 'all' | 'available' | 'completed' | 'expired';
+
 const Forms: React.FC = () => {
   const [forms, setForms] = useState<Form[]>([]);
   const [userResponses, setUserResponses] = useState<Record<string, UserResponse[]>>({});
   const [groupStatuses, setGroupStatuses] = useState<Record<string, GroupStatus>>({});
   const [loading, setLoading] = useState(true);
   const [responsesLoaded, setResponsesLoaded] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'available' | 'completed' | 'expired'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const user = auth.currentUser;
   const { trackPageView } = useActivityTracker();
+
+  // Get filter from URL for browser back support
+  const filter = (searchParams.get('filter') as FilterType) || 'all';
+
+  // URL-based filter setter for browser back support
+  const setFilter = useCallback((newFilter: FilterType) => {
+    const params = new URLSearchParams(searchParams);
+    if (newFilter === 'all') {
+      params.delete('filter');
+    } else {
+      params.set('filter', newFilter);
+    }
+    const queryString = params.toString();
+    navigate(queryString ? `/forms?${queryString}` : '/forms', { replace: false });
+  }, [navigate, searchParams]);
 
   // Track page view
   useEffect(() => {

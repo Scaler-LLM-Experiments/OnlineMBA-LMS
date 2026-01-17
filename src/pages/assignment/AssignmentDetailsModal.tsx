@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Calendar, Clock, GraduationCap, Download, ExternalLink, Users, FileText, Upload, CheckCircle, AlertCircle, Star } from 'lucide-react';
 import { AssignmentData, assignmentApiService, PeerRating } from '../../services/assignmentApi';
 import { Button } from '../../components/ui/button';
@@ -12,7 +12,7 @@ interface AssignmentDetailsModalProps {
   assignment: AssignmentData;
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: () => void; // Callback after successful submission
+  onSubmit?: (isUpdate: boolean) => void; // Callback after successful submission, passes whether it was an update
   activeTab: 'active' | 'upcoming' | 'expired' | 'completed';
 }
 
@@ -68,6 +68,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
   const [showUpdateConfirmation, setShowUpdateConfirmation] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // Prevent double submission
+  const isSubmittingRef = useRef(false); // Ref-based guard for synchronous check
 
   // Peer Rating & Remarks state
   const [peerRatings, setPeerRatings] = useState<Record<string, { rating: number; remark: string }>>({});
@@ -76,6 +77,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
   const [averageRating, setAverageRating] = useState<number>(0);
   const [peerRemarks, setPeerRemarks] = useState<string[]>([]);
   const [submissionId, setSubmissionId] = useState<string>('');
+
 
   // Update time every second for live countdown
   useEffect(() => {
@@ -198,6 +200,8 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
         file_count: files.filter(f => f.status !== 'cancelled').length,
       }
     });
+    // Reset update mode when closing
+    setIsUpdating(false);
     onClose();
   };
 
@@ -911,13 +915,22 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
     setFiles(prev => prev.filter(f => f.id !== id));
   };
 
+  // Handler for confirmation modal close
+  const handleConfirmationClose = useCallback(() => {
+    setShowConfirmationModal(false);
+    setConfirmationDetails(null);
+    handleClose(); // Close the main assignment modal
+  }, []);
+
   const handleSubmit = async (isUpdate = false) => {
-    // Prevent double submission
-    if (isSubmitting) {
+    // Prevent double submission with both ref and state check
+    if (isSubmitting || isSubmittingRef.current) {
       return;
     }
 
     try {
+      // Set both ref and state immediately
+      isSubmittingRef.current = true;
       setIsSubmitting(true);
 
       // Track submission start
@@ -934,6 +947,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
       // Check if user is authenticated
       if (!user?.email || !user?.displayName) {
         toast.error('User not authenticated');
+        isSubmittingRef.current = false;
         setIsSubmitting(false);
         return;
       }
@@ -955,12 +969,16 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
             minutes_late: Math.floor((new Date().getTime() - new Date(assignment.endDateTime).getTime()) / 60000),
           }
         });
+        isSubmittingRef.current = false;
+        setIsSubmitting(false);
         return;
       }
 
       // For updates, check if deadline has passed (updates not allowed after deadline)
       if (isUpdate && isPastDeadline) {
         toast.error('Cannot update submission after deadline has passed.');
+        isSubmittingRef.current = false;
+        setIsSubmitting(false);
         return;
       }
 
@@ -994,6 +1012,8 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
             }
           }
         );
+        isSubmittingRef.current = false;
+        setIsSubmitting(false);
         return;
       }
 
@@ -1013,6 +1033,8 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
             }
           }
         );
+        isSubmittingRef.current = false;
+        setIsSubmitting(false);
         return;
       }
 
@@ -1066,6 +1088,8 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
               }
             }
           );
+          isSubmittingRef.current = false;
+          setIsSubmitting(false);
           return;
         }
 
@@ -1088,6 +1112,8 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
               }
             }
           );
+          isSubmittingRef.current = false;
+          setIsSubmitting(false);
           return;
         }
       }
@@ -1112,6 +1138,8 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
               `Please provide remarks for: ${incompleteMembers.join(', ')}`,
               { duration: 5000 }
             );
+            isSubmittingRef.current = false;
+            setIsSubmitting(false);
             return;
           }
         }
@@ -1135,6 +1163,8 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
             }
           }
         );
+        isSubmittingRef.current = false;
+        setIsSubmitting(false);
         return;
       }
 
@@ -1156,6 +1186,8 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
             }
           }
         );
+        isSubmittingRef.current = false;
+        setIsSubmitting(false);
         return;
       }
 
@@ -1171,6 +1203,8 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
       if (pendingLargeFiles.length > 0) {
         toast.error(`Please wait for all large files to finish uploading. ${pendingLargeFiles.length} file(s) still uploading.`);
         toast.dismiss(loadingToast);
+        isSubmittingRef.current = false;
+        setIsSubmitting(false);
         return;
       }
 
@@ -1222,116 +1256,80 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
         ? [...groupMembers, user.email] // Add current user to the list
         : undefined;
 
-      // Submit to backend
-      let result;
-      try {
-        result = await assignmentApiService.submitAssignment(
-          user.email,
-          {
-            assignmentId: assignment.assignmentId || '',
-            studentName: user.displayName,
-            answers,
-            files: smallFileData, // Small files as base64
-            uploadedFileUrls: largeFileUrls, // Large files as Drive URLs
-            urls: validUrls,
-            groupName: assignment.groupAssignment === 'Yes' ? groupName : undefined,
-            groupMembers: finalGroupMembers,
-            isUpdate: isUpdate // Mark if this is an update
-          }
-        );
-      } catch (submitError) {
-        console.error('Submission API error:', submitError);
-        toast.dismiss(loadingToast);
-        toast.error(isUpdate ? 'Update failed. Please check your internet connection and try again.' : 'Submission failed. Please check your internet connection and try again.');
-
-        // Track submission error
-        tracking.trackSubmissionError(submitError instanceof Error ? submitError.message : 'Unknown error', {
-          assignment,
-          pageSection: 'submission_form',
-          metadata: {
-            is_update: isUpdate,
-            error_type: 'API_ERROR',
-          }
-        });
-        return;
-      }
-
+      // IMMEDIATELY show confirmation and close modal - don't wait for API
+      // This provides instant feedback to the user
       toast.dismiss(loadingToast);
 
-      if (result && result.success) {
-        toast.success(isUpdate ? 'Assignment updated successfully!' : 'Assignment submitted successfully!');
-
-        // Track submission success
-        tracking.trackSubmissionSuccess(result.data?.submissionId || 'unknown', {
-          assignment,
-          pageSection: 'submission_form',
-          metadata: {
-            is_update: isUpdate,
-            file_count: activeFiles.length,
-            url_count: validUrls.length,
-            is_group: assignment.groupAssignment === 'Yes',
-            has_peer_ratings: assignment.groupRatingRemarkEnabled === 'Yes',
-          }
-        });
-
-        // Store submission ID for peer ratings
-        if (result.data && result.data.submissionId) {
-          setSubmissionId(result.data.submissionId);
-
-          // Submit peer ratings if provided
-          if (assignment.groupAssignment === 'Yes' && assignment.groupRatingRemarkEnabled === 'Yes') {
-            const ratingsToSubmit = Object.entries(peerRatings)
-              .filter(([_, data]) => data.rating > 0 && data.remark.trim() !== '')
-              .map(([memberName, data]) => ({
-                memberName,
-                rating: data.rating,
-                remark: data.remark
-              }));
-
-            if (ratingsToSubmit.length > 0) {
-              try {
-                await handlePeerRatingsSubmit(result.data.submissionId);
-              } catch (ratingsError) {
-                console.error('Peer ratings submission failed:', ratingsError);
-                // Don't block assignment submission success
-                toast('Note: Assignment submitted but peer ratings failed. You can submit them later.', { icon: '⚠️' });
-              }
-            }
-          }
-        }
-
-        // Notify parent component to refresh assignment list FIRST
-        if (onSubmit) {
-          onSubmit();
-        }
-        // Then close modal
-        handleClose();
-      } else {
-        toast.error(isUpdate ? `Update failed: ${result?.error || 'Unknown error'}` : `Submission failed: ${result?.error || 'Unknown error'}`);
-
-        // Track submission error
-        tracking.trackSubmissionError(result?.error || 'Unknown error', {
-          assignment,
-          pageSection: 'submission_form',
-          metadata: {
-            is_update: isUpdate,
-            error_type: 'BACKEND_ERROR',
-          }
-        });
+      // Notify parent component to show confirmation modal immediately
+      if (onSubmit) {
+        onSubmit(isUpdate);
       }
+
+      // Close the modal immediately
+      handleClose();
+
+      // Reset state
+      setIsUpdating(false);
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+
+      // Submit to backend in background (fire and forget)
+      // The user already sees the confirmation - we trust the submission will succeed
+      assignmentApiService.submitAssignment(
+        user.email,
+        {
+          assignmentId: assignment.assignmentId || '',
+          studentName: user.displayName,
+          answers,
+          files: smallFileData, // Small files as base64
+          uploadedFileUrls: largeFileUrls, // Large files as Drive URLs
+          urls: validUrls,
+          groupName: assignment.groupAssignment === 'Yes' ? groupName : undefined,
+          groupMembers: finalGroupMembers,
+          isUpdate: isUpdate // Mark if this is an update
+        }
+      ).then(result => {
+        if (result && result.success) {
+          console.log('✅ Background submission successful');
+          // Track submission success
+          tracking.trackSubmissionSuccess(result.data?.submissionId || 'unknown', {
+            assignment,
+            pageSection: 'submission_form',
+            metadata: {
+              is_update: isUpdate,
+              file_count: activeFiles.length,
+              url_count: validUrls.length,
+              is_group: assignment.groupAssignment === 'Yes',
+            }
+          });
+        } else if (result && result.networkError) {
+          // Network error but likely succeeded - don't show error toast
+          console.log('⚠️ Network error but submission likely succeeded');
+        } else {
+          // Actual error - show toast
+          console.error('❌ Background submission failed:', result?.error);
+          toast.error(isUpdate ? 'Update may have failed. Please check your submission.' : 'Submission may have failed. Please check your submission.');
+        }
+      }).catch(submitError => {
+        console.error('❌ Background submission error:', submitError);
+        // Don't show error toast for network errors as the submission likely succeeded
+      });
+
     } catch (error) {
-      console.error('Error submitting assignment:', error);
-      toast.error('Failed to submit assignment. Please try again.');
+      console.error('Error preparing assignment submission:', error);
+      toast.error('Failed to prepare submission. Please try again.');
 
       // Track submission error
       tracking.trackSubmissionError(error instanceof Error ? error.message : 'Unknown error', {
         assignment,
         pageSection: 'submission_form',
         metadata: {
-          error_type: 'UNEXPECTED_ERROR',
+          error_type: 'PREPARATION_ERROR',
         }
       });
-    } finally {
+
+      // Reset state on error
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };
@@ -2538,7 +2536,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
           {((canSubmit && !isCompleted) || (isCompleted && isUpdating && !isPastDeadline)) && (
             <Button
               onClick={() => handleSubmit(isUpdating)}
-              className={`${isUpdating ? "bg-blue-600 hover:bg-blue-700" : "bg-[#fd621b] hover:bg-[#fc9100]"} text-white flex items-center gap-2`}
+              className="bg-[#fd621b] hover:bg-[#fc9100] text-white flex items-center gap-2"
               disabled={isSubmitting || files.some(f => f.status === 'uploading' && f.file.size >= 20 * 1024 * 1024)}
             >
               {isSubmitting ? (
@@ -2688,6 +2686,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
           </div>
         </div>
       )}
+
     </div>
   );
 };

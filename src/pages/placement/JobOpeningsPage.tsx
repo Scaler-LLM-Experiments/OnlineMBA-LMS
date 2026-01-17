@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -40,7 +41,24 @@ interface Job {
 type TabType = 'active' | 'upcoming' | 'expired' | 'applied';
 
 const JobOpeningsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('active');
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Get tab from URL for browser back support
+  const activeTab = (searchParams.get('tab') as TabType) || 'active';
+
+  // URL-based tab setter for browser back support
+  const setActiveTab = useCallback((tab: TabType) => {
+    const params = new URLSearchParams(searchParams);
+    if (tab === 'active') {
+      params.delete('tab');
+    } else {
+      params.set('tab', tab);
+    }
+    const queryString = params.toString();
+    navigate(queryString ? `/placement/jobs?${queryString}` : '/placement/jobs', { replace: false });
+  }, [navigate, searchParams]);
+
   const [jobs, setJobs] = useState<Job[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tabLoading, setTabLoading] = useState(false);

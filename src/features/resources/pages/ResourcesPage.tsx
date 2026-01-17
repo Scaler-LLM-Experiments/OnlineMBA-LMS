@@ -1,39 +1,31 @@
 /**
  * Resources Page
- * Online MBA - Learning materials and resources
+ * Online MBA - Learning materials and resources with hierarchical navigation
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
-  BookOpen,
-  Search,
-  Filter,
   FolderOpen,
   FileText,
   Video,
   Link as LinkIcon,
-  Download,
-  ExternalLink,
-  ChevronRight,
+  Search,
   Grid as GridIcon,
   List,
+  Home,
+  ChevronRight,
+  ArrowLeft,
+  Eye,
+  Calendar,
+  Upload,
+  Layers,
+  BookOpen,
+  GraduationCap,
 } from 'lucide-react';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { apiService } from '../../../services/api';
-import {
-  PageWrapper,
-  PageHeader,
-  Grid,
-  EmptyState,
-} from '../../../shared/components/layout/DashboardLayout';
-import { Card, StatCard } from '../../../shared/components/ui/Card';
-import { Button } from '../../../shared/components/ui/Button';
-import { Input } from '../../../shared/components/ui/Input';
-import { Badge } from '../../../shared/components/ui/Badge';
-import { Select } from '../../../shared/components/ui/Select';
-import { Tabs, TabPanel } from '../../../shared/components/ui/Tabs';
 import { useToast } from '../../../shared/components/ui/Toast';
-import { CardSkeleton } from '../../../shared/components/ui/Skeleton';
 import { cn } from '../../../lib/utils';
 
 // ============================================
@@ -44,16 +36,88 @@ interface Resource {
   id: string;
   title: string;
   description?: string;
-  category: string;
+  resourceType: string;
   type: 'document' | 'video' | 'link' | 'folder';
   url?: string;
   fileSize?: string;
   createdAt: string;
-  updatedAt?: string;
-  tags?: string[];
+  term?: string;
+  domain?: string;
   subject?: string;
-  module?: string;
+  files?: Array<{ name: string; url: string }>;
 }
+
+interface NavigationLevel {
+  type: 'root' | 'term' | 'domain' | 'subject';
+  value?: string;
+  label?: string;
+}
+
+// ============================================
+// Stats Card Component
+// ============================================
+
+const StatsCard = React.memo(function StatsCard({
+  icon,
+  value,
+  label,
+  isLoading,
+}: {
+  icon: React.ReactNode;
+  value: number | string;
+  label: string;
+  isLoading?: boolean;
+}) {
+  return (
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-4">
+      <div className="text-[#fd621b]">{icon}</div>
+      <div>
+        {isLoading ? (
+          <div className="h-8 w-12 bg-gray-200 dark:bg-gray-700 animate-pulse mb-1" />
+        ) : (
+          <div className="text-2xl font-bold text-gray-900 dark:text-white">{value}</div>
+        )}
+        <div className="text-sm text-gray-500 dark:text-gray-400">{label}</div>
+      </div>
+    </div>
+  );
+});
+
+// ============================================
+// Navigation Item Component (Folder/Term/Domain/Subject)
+// ============================================
+
+const NavigationItem = React.memo(function NavigationItem({
+  icon,
+  label,
+  count,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  count?: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-4 hover:border-[#fd621b] dark:hover:border-[#fc9100] hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-all group"
+    >
+      <div className="p-3 bg-gray-100 dark:bg-gray-700 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/30 transition-colors">
+        {icon}
+      </div>
+      <div className="flex-1 text-left">
+        <div className="font-semibold text-gray-900 dark:text-white">{label}</div>
+        {count !== undefined && (
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {count} {count === 1 ? 'item' : 'items'}
+          </div>
+        )}
+      </div>
+      <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#fd621b] transition-colors" />
+    </button>
+  );
+});
 
 // ============================================
 // Resource Card Component
@@ -62,140 +126,138 @@ interface Resource {
 const ResourceCard = React.memo(function ResourceCard({
   resource,
   viewMode,
+  onViewDetails,
 }: {
   resource: Resource;
   viewMode: 'grid' | 'list';
+  onViewDetails: () => void;
 }) {
   const getIcon = () => {
     switch (resource.type) {
       case 'video':
-        return <Video className="w-5 h-5 text-error-500" />;
+        return <LinkIcon className="w-6 h-6 text-[#fd621b]" />;
       case 'link':
-        return <LinkIcon className="w-5 h-5 text-secondary-500" />;
+        return <LinkIcon className="w-6 h-6 text-[#fd621b]" />;
       case 'folder':
-        return <FolderOpen className="w-5 h-5 text-warning-500" />;
+        return <FolderOpen className="w-6 h-6 text-[#fc9100]" />;
       default:
-        return <FileText className="w-5 h-5 text-primary-500" />;
+        return <FileText className="w-6 h-6 text-gray-600 dark:text-gray-400" />;
     }
   };
 
-  const getTypeLabel = () => {
-    switch (resource.type) {
-      case 'video':
-        return 'Video';
-      case 'link':
-        return 'Link';
-      case 'folder':
-        return 'Folder';
-      default:
-        return 'Document';
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return '';
     }
   };
 
-  const handleClick = () => {
-    if (resource.url) {
-      window.open(resource.url, '_blank');
-    }
+  const getCategoryBadge = () => {
+    const type = resource.resourceType || 'Document';
+    const isVideo = type.toLowerCase().includes('video');
+    return (
+      <span
+        className={cn(
+          'px-3 py-1 text-xs font-medium border',
+          isVideo
+            ? 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600'
+            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600'
+        )}
+      >
+        {type}
+      </span>
+    );
   };
 
   if (viewMode === 'list') {
     return (
-      <div
-        onClick={handleClick}
-        className={cn(
-          'flex items-center gap-4 p-4 bg-white dark:bg-neutral-900 rounded-xl',
-          'border border-neutral-200 dark:border-neutral-800',
-          'hover:border-primary-300 dark:hover:border-primary-700',
-          'cursor-pointer transition-all duration-200',
-          'group'
-        )}
-      >
-        <div className="p-3 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-4">
+        <div className="p-3 bg-gray-100 dark:bg-gray-700">
           {getIcon()}
         </div>
-
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-neutral-900 dark:text-neutral-100 truncate">
+          <div className="flex items-center gap-2 mb-1">
+            <Upload className="w-4 h-4 text-[#fd621b]" />
+            {getCategoryBadge()}
+          </div>
+          <h3 className={cn(
+            'font-semibold text-gray-900 dark:text-white truncate',
+            resource.type === 'video' && 'text-[#fd621b] dark:text-orange-400'
+          )}>
             {resource.title}
           </h3>
-          {resource.description && (
-            <p className="text-sm text-neutral-500 truncate mt-0.5">
-              {resource.description}
-            </p>
-          )}
-          <div className="flex items-center gap-2 mt-1">
-            <Badge variant="default" size="sm">
-              {resource.category}
-            </Badge>
-            {resource.module && (
-              <span className="text-xs text-neutral-400">
-                {resource.module}
-              </span>
-            )}
+          <p className="text-sm text-gray-500 dark:text-gray-400">{resource.subject}</p>
+          <div className="flex items-center gap-4 mt-1 text-xs text-gray-400">
+            <span className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              {formatDate(resource.createdAt)}
+            </span>
+            {resource.term && <span>Term: {resource.term}</span>}
           </div>
         </div>
-
-        <div className="flex items-center gap-3">
-          {resource.fileSize && (
-            <span className="text-sm text-neutral-400">{resource.fileSize}</span>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <ExternalLink className="w-4 h-4" />
-          </Button>
-        </div>
+        <button
+          onClick={onViewDetails}
+          className="bg-[#fd621b] hover:bg-[#fc9100] text-white px-4 py-2 text-sm font-medium flex items-center gap-2 transition-colors"
+        >
+          <Eye className="w-4 h-4" />
+          View Details
+        </button>
       </div>
     );
   }
 
   return (
-    <Card
-      hoverable
-      className="cursor-pointer group"
-      onClick={handleClick}
-    >
-      <div className="p-5">
-        <div className="flex items-start justify-between mb-4">
-          <div className="p-3 rounded-lg bg-neutral-100 dark:bg-neutral-800 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
-            {getIcon()}
-          </div>
-          <Badge variant="default" size="sm">
-            {getTypeLabel()}
-          </Badge>
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex flex-col h-full">
+      {/* Header */}
+      <div className="p-4 flex items-start justify-between">
+        <div className="p-3 bg-gray-100 dark:bg-gray-700">
+          {getIcon()}
         </div>
+        <div className="flex items-center gap-2">
+          <Upload className="w-4 h-4 text-[#fd621b]" />
+          {getCategoryBadge()}
+        </div>
+      </div>
 
-        <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2 line-clamp-2">
+      {/* Content */}
+      <div className="px-4 pb-2 flex-1">
+        <h3 className={cn(
+          'font-semibold mb-1 line-clamp-2',
+          resource.type === 'video'
+            ? 'text-[#fd621b] dark:text-orange-400'
+            : 'text-gray-900 dark:text-white'
+        )}>
           {resource.title}
         </h3>
-
-        {resource.description && (
-          <p className="text-sm text-neutral-500 line-clamp-2 mb-4">
-            {resource.description}
-          </p>
-        )}
-
-        <div className="flex items-center justify-between text-xs text-neutral-400">
-          <span>{resource.category}</span>
-          {resource.fileSize && <span>{resource.fileSize}</span>}
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+          {resource.subject}
+        </p>
+        <div className="flex items-center justify-between text-xs text-gray-400">
+          <span className="flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            {formatDate(resource.createdAt)}
+          </span>
+          {resource.term && <span>Term: {resource.term}</span>}
         </div>
-
-        {resource.tags && resource.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-3">
-            {resource.tags.slice(0, 3).map((tag, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-0.5 text-xs bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 rounded"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
-    </Card>
+
+      {/* Action Button */}
+      <div className="p-4 pt-2">
+        <button
+          onClick={onViewDetails}
+          className="w-full bg-[#fd621b] hover:bg-[#fc9100] text-white py-2.5 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+        >
+          <Eye className="w-4 h-4" />
+          View Details
+        </button>
+      </div>
+    </div>
   );
 });
 
@@ -206,13 +268,35 @@ const ResourceCard = React.memo(function ResourceCard({
 export default function ResourcesPage() {
   const { user } = useAuth();
   const toast = useToast();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // Get navigation state from URL params
+  const selectedTerm = searchParams.get('term') || undefined;
+  const selectedDomain = searchParams.get('domain') || undefined;
+  const selectedSubject = searchParams.get('subject') || undefined;
+
+  // Build navigation path from URL params
+  const navigationPath = useMemo((): NavigationLevel[] => {
+    const path: NavigationLevel[] = [{ type: 'root' }];
+
+    if (selectedTerm) {
+      path.push({ type: 'term', value: selectedTerm, label: selectedTerm });
+    }
+    if (selectedDomain) {
+      path.push({ type: 'domain', value: selectedDomain, label: selectedDomain });
+    }
+    if (selectedSubject) {
+      path.push({ type: 'subject', value: selectedSubject, label: selectedSubject });
+    }
+
+    return path;
+  }, [selectedTerm, selectedDomain, selectedSubject]);
 
   // Fetch resources
   const fetchResources = useCallback(async () => {
@@ -223,20 +307,40 @@ export default function ResourcesPage() {
       const result = await apiService.getResources(user.email);
 
       if (result.success && result.data) {
-        // Map API response to Resource type
-        const mappedResources: Resource[] = result.data.map((item: any) => ({
-          id: item.id || item.resourceId || Math.random().toString(),
-          title: item.title || item.name || 'Untitled',
-          description: item.description,
-          category: item.category || item.type || 'General',
-          type: determineResourceType(item),
-          url: item.url || item.link || item.driveLink,
-          fileSize: item.fileSize,
-          createdAt: item.createdAt || new Date().toISOString(),
-          tags: item.tags ? item.tags.split(',').map((t: string) => t.trim()) : [],
-          subject: item.subject,
-          module: item.module,
-        }));
+        const mappedResources: Resource[] = result.data.map((item: any) => {
+          // Extract URL from various possible sources
+          let resourceUrl = item.url || item.link || item.driveLink || item.driveFolderLink || item.driveUrl || item.fileUrl;
+
+          // Check urls array
+          if (!resourceUrl && item.urls && item.urls.length > 0) {
+            resourceUrl = item.urls[0].url;
+          }
+
+          // Check files array
+          if (!resourceUrl && item.files && item.files.length > 0) {
+            resourceUrl = item.files[0].url;
+          }
+
+          // Check individual file fields
+          if (!resourceUrl) {
+            resourceUrl = item.file1Url || item.file2Url || item.file3Url || item.file4Url || item.file5Url;
+          }
+
+          return {
+            id: item.id || item.resourceId || Math.random().toString(),
+            title: item.title || item.name || 'Untitled',
+            description: item.description,
+            resourceType: item.resourceType || item.category || 'Document',
+            type: determineResourceType(item),
+            url: resourceUrl,
+            fileSize: item.fileSize,
+            createdAt: item.createdAt || new Date().toISOString(),
+            term: item.term,
+            domain: item.domain,
+            subject: item.subject,
+            files: item.files,
+          };
+        });
 
         setResources(mappedResources);
       }
@@ -251,197 +355,395 @@ export default function ResourcesPage() {
     fetchResources();
   }, [fetchResources]);
 
-  // Get unique categories
-  const categories = useMemo(() => {
-    const uniqueCategories = Array.from(new Set(resources.map((r) => r.category)));
-    return [
-      { value: 'all', label: 'All Categories' },
-      ...uniqueCategories.map((c) => ({ value: c, label: c })),
-    ];
+  // Compute stats
+  const stats = useMemo(() => {
+    const terms = new Set(resources.map(r => r.term).filter(Boolean));
+    const domains = new Set(resources.map(r => r.domain).filter(Boolean));
+    const subjects = new Set(resources.map(r => r.subject).filter(Boolean));
+
+    return {
+      total: resources.length,
+      terms: terms.size,
+      domains: domains.size,
+      subjects: subjects.size,
+    };
   }, [resources]);
 
-  // Filter resources
-  const filteredResources = useMemo(() => {
-    return resources.filter((resource) => {
-      const matchesSearch =
-        resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (resource.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+  // Get current navigation level from URL params
+  const currentLevel = useMemo((): NavigationLevel => {
+    if (selectedSubject) {
+      return { type: 'subject', value: selectedSubject, label: selectedSubject };
+    }
+    if (selectedDomain) {
+      return { type: 'domain', value: selectedDomain, label: selectedDomain };
+    }
+    if (selectedTerm) {
+      return { type: 'term', value: selectedTerm, label: selectedTerm };
+    }
+    return { type: 'root' };
+  }, [selectedTerm, selectedDomain, selectedSubject]);
 
-      const matchesCategory =
-        categoryFilter === 'all' || resource.category === categoryFilter;
+  // Get items for current level
+  const currentItems = useMemo(() => {
+    if (currentLevel.type === 'root') {
+      // Show terms
+      const termCounts = new Map<string, number>();
+      resources.forEach(r => {
+        if (r.term) {
+          termCounts.set(r.term, (termCounts.get(r.term) || 0) + 1);
+        }
+      });
+      return Array.from(termCounts.entries()).map(([term, count]) => ({
+        type: 'term' as const,
+        label: term,
+        count,
+      }));
+    }
 
-      const matchesType = typeFilter === 'all' || resource.type === typeFilter;
+    if (currentLevel.type === 'term') {
+      // Show domains for selected term
+      const domainCounts = new Map<string, number>();
+      resources
+        .filter(r => r.term === currentLevel.value)
+        .forEach(r => {
+          if (r.domain) {
+            domainCounts.set(r.domain, (domainCounts.get(r.domain) || 0) + 1);
+          }
+        });
+      return Array.from(domainCounts.entries()).map(([domain, count]) => ({
+        type: 'domain' as const,
+        label: domain,
+        count,
+      }));
+    }
 
-      return matchesSearch && matchesCategory && matchesType;
-    });
-  }, [resources, searchTerm, categoryFilter, typeFilter]);
+    if (currentLevel.type === 'domain') {
+      // Show subjects for selected term and domain
+      const subjectCounts = new Map<string, number>();
+      resources
+        .filter(r => r.term === selectedTerm && r.domain === currentLevel.value)
+        .forEach(r => {
+          if (r.subject) {
+            subjectCounts.set(r.subject, (subjectCounts.get(r.subject) || 0) + 1);
+          }
+        });
+      return Array.from(subjectCounts.entries()).map(([subject, count]) => ({
+        type: 'subject' as const,
+        label: subject,
+        count,
+      }));
+    }
 
-  // Stats
-  const stats = useMemo(() => ({
-    total: resources.length,
-    documents: resources.filter((r) => r.type === 'document').length,
-    videos: resources.filter((r) => r.type === 'video').length,
-    links: resources.filter((r) => r.type === 'link').length,
-  }), [resources]);
+    return [];
+  }, [resources, currentLevel, selectedTerm]);
 
-  // Type options
-  const typeOptions = [
-    { value: 'all', label: 'All Types' },
-    { value: 'document', label: 'Documents' },
-    { value: 'video', label: 'Videos' },
-    { value: 'link', label: 'Links' },
-    { value: 'folder', label: 'Folders' },
-  ];
+  // Get resources for current subject (when at subject level)
+  const currentResources = useMemo(() => {
+    if (currentLevel.type !== 'subject') return [];
 
-  if (loading) {
-    return (
-      <PageWrapper>
-        <PageHeader
-          title="Learning Resources"
-          subtitle="Access course materials, recordings, and study resources"
-        />
-        <Grid cols={4} className="mb-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-neutral-200 dark:bg-neutral-700 rounded-xl animate-pulse" />
-          ))}
-        </Grid>
-        <Grid cols={3}>
-          {[...Array(9)].map((_, i) => (
-            <CardSkeleton key={i} lines={2} />
-          ))}
-        </Grid>
-      </PageWrapper>
+    return resources.filter(r =>
+      r.term === selectedTerm &&
+      r.domain === selectedDomain &&
+      r.subject === currentLevel.value
     );
-  }
+  }, [resources, currentLevel, selectedTerm, selectedDomain]);
+
+  // Filtered resources based on search
+  const filteredResources = useMemo(() => {
+    if (!searchTerm) return currentResources;
+    const term = searchTerm.toLowerCase();
+    return currentResources.filter(r =>
+      r.title.toLowerCase().includes(term) ||
+      (r.description || '').toLowerCase().includes(term)
+    );
+  }, [currentResources, searchTerm]);
+
+  // Navigation handlers - using URL params for browser back support
+  const navigateTo = useCallback((type: NavigationLevel['type'], value: string) => {
+    const params = new URLSearchParams();
+
+    if (type === 'term') {
+      params.set('term', value);
+    } else if (type === 'domain') {
+      if (selectedTerm) params.set('term', selectedTerm);
+      params.set('domain', value);
+    } else if (type === 'subject') {
+      if (selectedTerm) params.set('term', selectedTerm);
+      if (selectedDomain) params.set('domain', selectedDomain);
+      params.set('subject', value);
+    }
+
+    navigate(`/resources?${params.toString()}`);
+    setSearchTerm('');
+  }, [navigate, selectedTerm, selectedDomain]);
+
+  const navigateBack = useCallback(() => {
+    if (selectedSubject) {
+      // Go back to domain level
+      const params = new URLSearchParams();
+      if (selectedTerm) params.set('term', selectedTerm);
+      if (selectedDomain) params.set('domain', selectedDomain);
+      navigate(`/resources?${params.toString()}`);
+    } else if (selectedDomain) {
+      // Go back to term level
+      const params = new URLSearchParams();
+      if (selectedTerm) params.set('term', selectedTerm);
+      navigate(`/resources?${params.toString()}`);
+    } else if (selectedTerm) {
+      // Go back to root
+      navigate('/resources');
+    }
+    setSearchTerm('');
+  }, [navigate, selectedTerm, selectedDomain, selectedSubject]);
+
+  const navigateToLevel = useCallback((index: number) => {
+    const params = new URLSearchParams();
+
+    if (index === 0) {
+      // Root level - no params
+      navigate('/resources');
+    } else if (index === 1 && selectedTerm) {
+      // Term level
+      params.set('term', selectedTerm);
+      navigate(`/resources?${params.toString()}`);
+    } else if (index === 2 && selectedTerm && selectedDomain) {
+      // Domain level
+      params.set('term', selectedTerm);
+      params.set('domain', selectedDomain);
+      navigate(`/resources?${params.toString()}`);
+    } else if (index === 3 && selectedTerm && selectedDomain && selectedSubject) {
+      // Subject level (current)
+      params.set('term', selectedTerm);
+      params.set('domain', selectedDomain);
+      params.set('subject', selectedSubject);
+      navigate(`/resources?${params.toString()}`);
+    }
+
+    setSearchTerm('');
+  }, [navigate, selectedTerm, selectedDomain, selectedSubject]);
+
+  const handleViewDetails = (resource: Resource) => {
+    if (resource.url) {
+      window.open(resource.url, '_blank');
+    } else {
+      toast.error('This resource has no file or link attached');
+    }
+  };
+
 
   return (
-    <PageWrapper>
-      <PageHeader
-        title="Learning Resources"
-        subtitle="Access course materials, recordings, and study resources"
-      />
-
-      {/* Stats */}
-      <Grid cols={4} className="mb-6">
-        <StatCard
-          label="Total Resources"
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatsCard
+          icon={<FolderOpen className="w-6 h-6" />}
           value={stats.total}
-          icon={<BookOpen className="w-5 h-5" />}
+          label="Total Materials"
+          isLoading={loading}
         />
-        <StatCard
-          label="Documents"
-          value={stats.documents}
-          icon={<FileText className="w-5 h-5" />}
+        <StatsCard
+          icon={<FileText className="w-6 h-6" />}
+          value={stats.terms}
+          label="Terms Available"
+          isLoading={loading}
         />
-        <StatCard
-          label="Videos"
-          value={stats.videos}
-          icon={<Video className="w-5 h-5" />}
+        <StatsCard
+          icon={<Layers className="w-6 h-6" />}
+          value={stats.domains}
+          label="Domains"
+          isLoading={loading}
         />
-        <StatCard
-          label="Links"
-          value={stats.links}
-          icon={<LinkIcon className="w-5 h-5" />}
+        <StatsCard
+          icon={<GraduationCap className="w-6 h-6" />}
+          value={stats.subjects}
+          label="Subjects"
+          isLoading={loading}
         />
-      </Grid>
+      </div>
 
-      {/* Filters */}
-      <Card className="mb-6">
-        <div className="p-4">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Search resources..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                leftIcon={<Search className="w-4 h-4" />}
-              />
-            </div>
-            <div className="flex gap-4">
-              <Select
-                options={categories}
-                value={categoryFilter}
-                onChange={setCategoryFilter}
-                fullWidth={false}
-                className="w-44"
-              />
-              <Select
-                options={typeOptions}
-                value={typeFilter}
-                onChange={setTypeFilter}
-                fullWidth={false}
-                className="w-36"
-              />
-              <div className="flex border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={cn(
-                    'p-2 transition-colors',
-                    viewMode === 'grid'
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-white dark:bg-neutral-800 text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700'
-                  )}
-                >
-                  <GridIcon className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={cn(
-                    'p-2 transition-colors',
-                    viewMode === 'list'
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-white dark:bg-neutral-800 text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700'
-                  )}
-                >
-                  <List className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
+      {/* Search & Navigate Card */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Search className="w-5 h-5" />
+            Search & Navigate
+          </h2>
+          <div className="flex border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={cn(
+                'p-2 transition-colors',
+                viewMode === 'grid'
+                  ? 'bg-[#fd621b] text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+              )}
+            >
+              <GridIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={cn(
+                'p-2 transition-colors',
+                viewMode === 'list'
+                  ? 'bg-[#fd621b] text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+              )}
+            >
+              <List className="w-5 h-5" />
+            </button>
           </div>
         </div>
-      </Card>
 
-      {/* Resources */}
-      {filteredResources.length === 0 ? (
-        <EmptyState
-          icon={<BookOpen className="w-16 h-16" />}
-          title="No resources found"
-          description="Try adjusting your search or filter criteria"
-        />
-      ) : viewMode === 'grid' ? (
-        <Grid cols={3}>
-          {filteredResources.map((resource) => (
-            <ResourceCard
-              key={resource.id}
-              resource={resource}
-              viewMode={viewMode}
-            />
-          ))}
-        </Grid>
-      ) : (
-        <div className="space-y-2">
-          {filteredResources.map((resource) => (
-            <ResourceCard
-              key={resource.id}
-              resource={resource}
-              viewMode={viewMode}
-            />
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center gap-2 mb-4 text-sm flex-wrap">
+          {/* Back button - only show when not at root */}
+          {navigationPath.length > 1 && (
+            <button
+              onClick={navigateBack}
+              className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-[#fd621b] dark:hover:text-orange-400 transition-colors mr-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </button>
+          )}
+          {/* Home/Root button */}
+          <button
+            onClick={() => navigateToLevel(0)}
+            className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-[#fd621b] dark:hover:text-orange-400 transition-colors"
+          >
+            <Home className="w-4 h-4" />
+          </button>
+          {navigationPath.map((level, index) => (
+            <React.Fragment key={index}>
+              {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
+              <button
+                onClick={() => navigateToLevel(index)}
+                className={cn(
+                  'hover:text-[#fd621b] dark:hover:text-orange-400 transition-colors',
+                  index === navigationPath.length - 1
+                    ? 'text-[#fd621b] dark:text-orange-400 font-medium'
+                    : 'text-gray-600 dark:text-gray-400'
+                )}
+              >
+                {level.type === 'root' ? 'Resources' : level.label}
+              </button>
+            </React.Fragment>
           ))}
         </div>
+
+        {/* Search Input */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder={currentLevel.type === 'subject'
+              ? "Search materials in this subject..."
+              : "Search materials across all terms..."
+            }
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fd621b] focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      {/* Content Area */}
+      {loading ? (
+        // Loading skeleton for content
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-48 bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          ))}
+        </div>
+      ) : currentLevel.type === 'subject' ? (
+        // Show resources for selected subject
+        <>
+          {filteredResources.length === 0 ? (
+            <div className="text-center py-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <BookOpen className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                No resources found
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                {searchTerm
+                  ? 'Try adjusting your search criteria'
+                  : 'No materials available for this subject yet'
+                }
+              </p>
+            </div>
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredResources.map((resource) => (
+                <ResourceCard
+                  key={resource.id}
+                  resource={resource}
+                  viewMode={viewMode}
+                  onViewDetails={() => handleViewDetails(resource)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredResources.map((resource) => (
+                <ResourceCard
+                  key={resource.id}
+                  resource={resource}
+                  viewMode={viewMode}
+                  onViewDetails={() => handleViewDetails(resource)}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        // Show navigation items (terms, domains, or subjects)
+        <>
+          {currentItems.length === 0 ? (
+            <div className="text-center py-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <FolderOpen className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                No {currentLevel.type === 'root' ? 'terms' : currentLevel.type === 'term' ? 'domains' : 'subjects'} available
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                Resources will appear here once they are added
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {currentItems.map((item) => (
+                <NavigationItem
+                  key={item.label}
+                  icon={
+                    item.type === 'term' ? (
+                      <FileText className="w-6 h-6 text-[#fd621b]" />
+                    ) : item.type === 'domain' ? (
+                      <Layers className="w-6 h-6 text-[#fc9100]" />
+                    ) : (
+                      <GraduationCap className="w-6 h-6 text-[#fd621b]" />
+                    )
+                  }
+                  label={item.label}
+                  count={item.count}
+                  onClick={() => navigateTo(item.type, item.label)}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
-    </PageWrapper>
+    </div>
   );
 }
 
 // Helper function
 function determineResourceType(item: any): Resource['type'] {
-  if (item.type === 'video' || item.category?.toLowerCase().includes('video')) {
+  if (item.type === 'video' || item.resourceType?.toLowerCase().includes('video')) {
     return 'video';
   }
-  if (item.type === 'link' || item.category?.toLowerCase().includes('link')) {
+  if (item.type === 'link' || item.resourceType?.toLowerCase().includes('link')) {
     return 'link';
   }
-  if (item.type === 'folder' || item.category?.toLowerCase().includes('folder')) {
+  if (item.type === 'folder' || item.resourceType?.toLowerCase().includes('folder')) {
     return 'folder';
   }
   return 'document';

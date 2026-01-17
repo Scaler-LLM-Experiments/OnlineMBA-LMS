@@ -14,6 +14,7 @@ import {
 import { ErrorBoundary, RouteErrorBoundary } from './core/errors/ErrorBoundary';
 import { DashboardLayout, LoadingState } from './shared/components/layout/DashboardLayout';
 import { ToastProvider } from './shared/components/ui/Toast';
+import { Toaster } from 'react-hot-toast';
 import { useAuth, AuthProvider } from './features/auth/hooks/useAuth';
 
 // ============================================
@@ -324,6 +325,41 @@ export default function App() {
             <RouteErrorBoundary>
               <AppRoutes />
             </RouteErrorBoundary>
+            {/* Toaster for react-hot-toast notifications */}
+            <Toaster
+              position="top-center"
+              containerStyle={{
+                zIndex: 99999,
+              }}
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  borderRadius: '0',
+                  padding: '16px',
+                  fontSize: '14px',
+                  zIndex: 99999,
+                },
+                success: {
+                  duration: 5000,
+                  style: {
+                    background: '#10B981',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                  },
+                  iconTheme: {
+                    primary: '#fff',
+                    secondary: '#10B981',
+                  },
+                },
+                error: {
+                  duration: 5000,
+                  style: {
+                    background: '#EF4444',
+                    color: '#fff',
+                  },
+                },
+              }}
+            />
           </ToastProvider>
         </AuthProvider>
       </BrowserRouter>
