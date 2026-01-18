@@ -232,33 +232,38 @@ export const Sidebar = memo(function Sidebar({
         {/* Header */}
         <div
           className={cn(
-            'flex items-center h-16 px-4',
+            'flex items-center px-4',
             'border-b border-neutral-200 dark:border-neutral-800',
-            isCollapsed ? 'justify-center' : 'justify-between'
+            isCollapsed ? 'justify-center h-16' : 'justify-between h-20'
           )}
         >
           {/* Logo */}
           <NavLink
             to="/overview"
-            className="flex items-center gap-3 group"
+            className="flex items-center group"
             aria-label={APP_CONFIG.name}
           >
-            <div
-              className={cn(
-                'flex items-center justify-center',
-                'w-10 h-10 rounded-xl',
-                'bg-gradient-to-br from-primary-500 to-primary-600',
-                'text-white',
-                'shadow-glow-primary/30',
-                'group-hover:shadow-glow-primary transition-shadow duration-300'
-              )}
-            >
-              <GraduationCap className="w-6 h-6" />
-            </div>
-            {!isCollapsed && (
-              <span className="font-bold text-lg text-neutral-900 dark:text-white">
-                {APP_CONFIG.name}
-              </span>
+            {isCollapsed ? (
+              <div className="w-10 h-10 flex items-center justify-center">
+                <img
+                  src="https://lh3.googleusercontent.com/d/1NFXV17i1OF2BsdGjyaTc2Dh13H-GdXjl"
+                  alt="Scaler"
+                  className="h-8 object-contain"
+                />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <img
+                  src="https://lh3.googleusercontent.com/d/1NFXV17i1OF2BsdGjyaTc2Dh13H-GdXjl"
+                  alt="Scaler"
+                  className="h-8 object-contain"
+                />
+                <div className="h-8 w-px bg-neutral-300 dark:bg-neutral-600" />
+                <div className="flex flex-col">
+                  <span className="text-xl font-black text-neutral-900 dark:text-white tracking-tight">SCALER</span>
+                  <span className="text-[10px] text-[#fd621b] font-medium leading-tight">Online PGP in Business and AI</span>
+                </div>
+              </div>
             )}
           </NavLink>
 

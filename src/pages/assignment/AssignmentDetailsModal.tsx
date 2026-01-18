@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Calendar, Clock, GraduationCap, Download, ExternalLink, Users, FileText, Upload, CheckCircle, AlertCircle, Star } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Calendar, Clock, Download, ExternalLink, Users, FileText, Upload, CheckCircle, AlertCircle, Star } from 'lucide-react';
 import { AssignmentData, assignmentApiService, PeerRating } from '../../services/assignmentApi';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -915,12 +915,6 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
     setFiles(prev => prev.filter(f => f.id !== id));
   };
 
-  // Handler for confirmation modal close
-  const handleConfirmationClose = useCallback(() => {
-    setShowConfirmationModal(false);
-    setConfirmationDetails(null);
-    handleClose(); // Close the main assignment modal
-  }, []);
 
   const handleSubmit = async (isUpdate = false) => {
     // Prevent double submission with both ref and state check
@@ -1302,7 +1296,7 @@ export const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
               is_group: assignment.groupAssignment === 'Yes',
             }
           });
-        } else if (result && result.networkError) {
+        } else if (result && (result as any).networkError) {
           // Network error but likely succeeded - don't show error toast
           console.log('⚠️ Network error but submission likely succeeded');
         } else {

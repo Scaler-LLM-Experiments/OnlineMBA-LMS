@@ -135,6 +135,24 @@ export interface StudentProfile {
   isAdmin?: boolean;
 }
 
+export interface EnrolledStudent {
+  email: string;
+  fullName: string;
+  rollNo: string;
+  batch: string;
+  role: string;
+  enrolledAt?: string;
+  enrolledBy?: string;
+}
+
+export interface EnrollStudentData {
+  email: string;
+  fullName: string;
+  rollNo: string;
+  batch: string;
+  role: string;
+}
+
 export interface FullStudentProfile {
   email: string;
   fullName: string;
@@ -1681,6 +1699,86 @@ class ApiService {
       filters: JSON.stringify(filters || {})
     });
     console.log('API Service: Policies result:', result);
+    return result;
+  }
+
+  // ==================== Course Access Management API Methods ====================
+
+  // Get all enrolled students
+  async getEnrolledStudents(
+    adminEmail: string
+  ): Promise<ApiResponse<EnrolledStudent[]>> {
+    console.log('API Service: Getting enrolled students');
+    const result = await this.makeRequest<EnrolledStudent[]>('getEnrolledStudents', {
+      studentEmail: adminEmail
+    });
+    console.log('API Service: Enrolled students result:', result);
+    return result;
+  }
+
+  // Enroll a new student
+  async enrollStudent(
+    adminEmail: string,
+    studentData: EnrollStudentData
+  ): Promise<ApiResponse<{ message: string; student: EnrolledStudent }>> {
+    console.log('API Service: Enrolling student:', studentData.email);
+    const result = await this.makeRequest<{ message: string; student: EnrolledStudent }>(
+      'enrollStudent',
+      {
+        studentEmail: adminEmail,
+        studentData: JSON.stringify(studentData)
+      },
+      true
+    );
+    console.log('API Service: Enroll student result:', result);
+    return result;
+  }
+
+  // Update an enrolled student
+  async updateEnrolledStudent(
+    adminEmail: string,
+    studentEmail: string,
+    studentData: Partial<EnrollStudentData>
+  ): Promise<ApiResponse<{ message: string }>> {
+    console.log('API Service: Updating enrolled student:', studentEmail);
+    const result = await this.makeRequest<{ message: string }>(
+      'updateEnrolledStudent',
+      {
+        studentEmail: adminEmail,
+        targetStudentEmail: studentEmail,
+        studentData: JSON.stringify(studentData)
+      },
+      true
+    );
+    console.log('API Service: Update enrolled student result:', result);
+    return result;
+  }
+
+  // Remove student access
+  async removeStudentAccess(
+    adminEmail: string,
+    studentEmail: string
+  ): Promise<ApiResponse<{ message: string }>> {
+    console.log('API Service: Removing student access:', studentEmail);
+    const result = await this.makeRequest<{ message: string }>('removeStudentAccess', {
+      studentEmail: adminEmail,
+      targetStudentEmail: studentEmail
+    });
+    console.log('API Service: Remove student access result:', result);
+    return result;
+  }
+
+  // Get next auto roll number for a batch
+  async getNextRollNumber(
+    adminEmail: string,
+    batch: string
+  ): Promise<ApiResponse<{ nextRollNumber: string }>> {
+    console.log('API Service: Getting next roll number for batch:', batch);
+    const result = await this.makeRequest<{ nextRollNumber: string }>('getNextRollNumber', {
+      studentEmail: adminEmail,
+      batch
+    });
+    console.log('API Service: Next roll number result:', result);
     return result;
   }
 }

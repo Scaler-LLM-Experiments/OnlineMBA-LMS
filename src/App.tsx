@@ -85,6 +85,7 @@ const JobBuilderPage = lazy(() => import('./pages/admin/JobBuilderPage'));
 const JobResponsesPage = lazy(() => import('./pages/admin/JobResponsesPage'));
 const PlacementManagementPage = lazy(() => import('./pages/admin/PlacementManagementPage'));
 const PortalUsageTracker = lazy(() => import('./pages/admin/PortalUsageTracker'));
+const CourseAccessPage = lazy(() => import('./pages/admin/CourseAccessPage'));
 
 // ============================================
 // Loading Fallback
@@ -252,6 +253,7 @@ function AppRoutes() {
           <Route path="/admin/jobs/:jobId/responses" element={<AdminGuard><JobResponsesPage /></AdminGuard>} />
           <Route path="/admin/placement" element={<AdminGuard><PlacementManagementPage /></AdminGuard>} />
           <Route path="/admin/usage-tracker" element={<AdminGuard><PortalUsageTracker /></AdminGuard>} />
+          <Route path="/admin/course-access" element={<AdminGuard><CourseAccessPage /></AdminGuard>} />
         </Route>
 
         {/* Standalone Routes (No Dashboard Layout) */}
