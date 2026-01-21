@@ -518,6 +518,109 @@ function getTermDropdownsResMgmt() {
   }
 }
 
+// ==================== HIERARCHY MANAGEMENT ====================
+
+/**
+ * Add custom hierarchy values to Term sheet if they don't exist
+ * This allows custom batch/term/domain/subject to be saved for future use
+ *
+ * @param {Object} params - {batch, term, domain, subject}
+ * @returns {Object} {success, added: boolean, message: string}
+ */
+function addToTermHierarchyIfNeeded(params) {
+  try {
+    const { batch, term, domain, subject } = params;
+
+    // Skip if no batch provided (batch is required)
+    if (!batch || batch === 'Other') {
+      return { success: true, added: false, message: 'No batch to add' };
+    }
+
+    Logger.log(`🔍 Checking hierarchy for: Batch=${batch}, Term=${term}, Domain=${domain}, Subject=${subject}`);
+
+    const sheet = SpreadsheetApp.openById(RESOURCES_CONFIG.SHEET_ID)
+      .getSheetByName(RESOURCES_CONFIG.TERM_SHEET);
+
+    if (!sheet) {
+      Logger.log('❌ Term sheet not found');
+      return { success: false, error: 'Term sheet not found' };
+    }
+
+    const data = sheet.getDataRange().getValues();
+
+    // Check if this exact combination already exists
+    let exists = false;
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const rowBatch = row[0] ? row[0].toString().trim() : '';
+      const rowTerm = row[1] ? row[1].toString().trim() : '';
+      const rowDomain = row[2] ? row[2].toString().trim() : '';
+      const rowSubject = row[3] ? row[3].toString().trim() : '';
+
+      // Check if batch matches first
+      const batchMatch = rowBatch === batch;
+
+      // For exact match, all provided values must match
+      if (batchMatch &&
+          ((!term || term === 'Other') || rowTerm === term) &&
+          ((!domain || domain === 'Other') || rowDomain === domain) &&
+          ((!subject || subject === 'Other') || rowSubject === subject)) {
+
+        // Check if this is a complete match for provided values
+        if (term && term !== 'Other' && domain && domain !== 'Other' && subject && subject !== 'Other') {
+          if (rowBatch === batch && rowTerm === term && rowDomain === domain && rowSubject === subject) {
+            exists = true;
+            break;
+          }
+        } else if (term && term !== 'Other' && domain && domain !== 'Other') {
+          if (rowBatch === batch && rowTerm === term && rowDomain === domain && (!rowSubject || rowSubject === subject)) {
+            exists = true;
+            break;
+          }
+        } else if (term && term !== 'Other') {
+          if (rowBatch === batch && rowTerm === term && (!rowDomain || rowDomain === domain)) {
+            exists = true;
+            break;
+          }
+        } else if (rowBatch === batch && !rowTerm && !rowDomain && !rowSubject) {
+          exists = true;
+          break;
+        }
+      }
+    }
+
+    // If doesn't exist and we have meaningful data, add it
+    if (!exists) {
+      // Prepare the values (skip "Other" values)
+      const newBatch = batch;
+      const newTerm = (term && term !== 'Other') ? term : '';
+      const newDomain = (domain && domain !== 'Other') ? domain : '';
+      const newSubject = (subject && subject !== 'Other') ? subject : '';
+
+      // Only add if we have at least batch and one more level
+      if (newBatch && (newTerm || newDomain || newSubject)) {
+        const newRow = [newBatch, newTerm, newDomain, newSubject];
+        sheet.appendRow(newRow);
+
+        Logger.log(`✅ Added to Term hierarchy: ${newRow.join(' > ')}`);
+
+        return {
+          success: true,
+          added: true,
+          message: `Added hierarchy: ${newBatch}${newTerm ? ' > ' + newTerm : ''}${newDomain ? ' > ' + newDomain : ''}${newSubject ? ' > ' + newSubject : ''}`
+        };
+      }
+    }
+
+    Logger.log(`ℹ️ Hierarchy already exists or nothing to add`);
+    return { success: true, added: false, message: 'Hierarchy already exists' };
+
+  } catch (error) {
+    Logger.log('❌ Error adding to hierarchy: ' + error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 // ==================== CRUD OPERATIONS ====================
 
 /**
@@ -532,6 +635,19 @@ function createResourceResMgmt(resourceData) {
 
     if (!sheet) {
       return { success: false, error: 'Resources Material sheet not found' };
+    }
+
+    // Auto-add custom hierarchy values to Term sheet if they don't exist
+    // This ensures new batch/term/domain/subject combinations appear in dropdowns
+    const hierarchyResult = addToTermHierarchyIfNeeded({
+      batch: resourceData.batch,
+      term: resourceData.term,
+      domain: resourceData.domain,
+      subject: resourceData.subject
+    });
+
+    if (hierarchyResult.added) {
+      Logger.log(`📋 Hierarchy updated: ${hierarchyResult.message}`);
     }
 
     // Generate ID

@@ -309,21 +309,30 @@ export default function ResourcesPage() {
       if (result.success && result.data) {
         const mappedResources: Resource[] = result.data.map((item: any) => {
           // Extract URL from various possible sources
-          let resourceUrl = item.url || item.link || item.driveLink || item.driveFolderLink || item.driveUrl || item.fileUrl;
+          // PRIORITY: Individual file URL > files array > urls array > folder link
+          let resourceUrl = '';
 
-          // Check urls array
-          if (!resourceUrl && item.urls && item.urls.length > 0) {
-            resourceUrl = item.urls[0].url;
-          }
+          // First priority: Check individual file fields (actual file URLs)
+          resourceUrl = item.file1Url || item.file2Url || item.file3Url || item.file4Url || item.file5Url || item.fileUrl;
 
-          // Check files array
-          if (!resourceUrl && item.files && item.files.length > 0) {
+          // Second priority: Check files array
+          if (!resourceUrl && item.files && item.files.length > 0 && item.files[0].url) {
             resourceUrl = item.files[0].url;
           }
 
-          // Check individual file fields
+          // Third priority: Check urls array
+          if (!resourceUrl && item.urls && item.urls.length > 0 && item.urls[0].url) {
+            resourceUrl = item.urls[0].url;
+          }
+
+          // Fourth priority: Direct URL fields (not folder)
           if (!resourceUrl) {
-            resourceUrl = item.file1Url || item.file2Url || item.file3Url || item.file4Url || item.file5Url;
+            resourceUrl = item.url || item.link || item.driveLink || item.driveUrl;
+          }
+
+          // Last resort: Folder link (only if nothing else is available)
+          if (!resourceUrl) {
+            resourceUrl = item.driveFolderLink;
           }
 
           return {

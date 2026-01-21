@@ -300,6 +300,21 @@ export function ResourcesManagementCard({ activeTab, onTabChange }: ResourcesMan
     const domain = formData.domain === 'Other' ? formData.domainCustom : formData.domain;
     const subject = formData.subject === 'Other' ? formData.subjectCustom : formData.subject;
 
+    console.log('📁 Upload folder path values:', {
+      'formData.batch': formData.batch,
+      'formData.batchCustom': formData.batchCustom,
+      'formData.term': formData.term,
+      'formData.termCustom': formData.termCustom,
+      'formData.domain': formData.domain,
+      'formData.domainCustom': formData.domainCustom,
+      'formData.subject': formData.subject,
+      'formData.subjectCustom': formData.subjectCustom,
+      'resolved batch': batch,
+      'resolved term': term,
+      'resolved domain': domain,
+      'resolved subject': subject
+    });
+
     for (let i = 0; i < formData.pendingFiles.length; i++) {
       const fileUpload = formData.pendingFiles[i];
       const fileSize = fileUpload.file.size;
